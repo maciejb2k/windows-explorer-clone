@@ -1,0 +1,127 @@
+:host {
+  border: 1px solid #d9d9d9;
+  flex-grow: 1;
+  height: 30px;
+  margin-right: 5px;
+  display: flex;
+  align-items: stretch;
+}
+
+.btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+
+  &:hover {
+    background: #e5f3fb;
+    border: 1px solid #70c0e7;
+  }
+}
+
+.current-icon {
+  width: 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chevron {
+  border: solid #828282;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 2px;
+}
+
+.chevron__down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+.chevron__right {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+
+.preview-paths {
+  width: 14px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .chevron {
+    position: relative;
+    left: -1px;
+  }
+
+  &:hover {
+    background: #e5f3ff;
+    border: 1px solid #cce8ff;
+  }
+}
+
+.path {
+  display: flex;
+  flex-grow: 1;
+  height: 100%;
+
+  .path-button {
+    display: flex;
+    border: 1px solid transparent;
+
+    &:hover {
+      background: #e5f3ff;
+      border: 1px solid #cce8ff;
+
+      .path-button__location {
+        border-right: 1px solid #cce8ff;
+      }
+    }
+
+    .path-button__location {
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid transparent;
+    }
+
+    .path-button__expand {
+      width: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .chevron {
+        position: relative;
+        left: -1px;
+      }
+    }
+  }
+
+  .path-button--clicked {
+    background: #cce8ff;
+    border: 1px solid #99d1ff;
+
+    .path-button__location {
+      border-right: 1px solid #99d1ff;
+    }
+  }
+
+  .expand {
+    margin-left: auto;
+  }
+}
+
+.refresh {
+  border-left: 1px solid #d9d9d9;
+
+  .referesh__icon {
+    width: 14px;
+    height: 14px;
+  }
+}

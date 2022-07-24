@@ -1,0 +1,162 @@
+<div class="ribbon">
+  <div class="ribbon__group">
+    <div class="ribbon__group-content">
+      <button class="btn btn-lg-md btn-lg-vert-dropdown">
+        <app-icon class="btn-lg-vert-dropdown__icon" [code]="2089"></app-icon>
+        <p class="btn-lg-vert-dropdown__label">
+          Navigation pane <span class="triangle"></span>
+        </p>
+      </button>
+      <div class="ribbon__vertical-group ribbon__vertical-group--space">
+        <button class="btn btn-sm-hor-dropdown">
+          <app-icon class="btn-sm-hor__icon" [code]="4285"></app-icon>
+          <p class="btn-sm-hor__label">Preview pane</p>
+        </button>
+        <button class="btn btn-sm-hor-dropdown">
+          <app-icon class="btn-sm-hor__icon" [code]="4307"></app-icon>
+          <p class="btn-sm-hor__label">Details pane</p>
+        </button>
+      </div>
+    </div>
+    <p class="ribbon__group-label">Panes</p>
+  </div>
+  <div class="ribbon__group">
+    <div class="ribbon__group-content">
+      <div class="group-scroll group-scroll--layout">
+        <div class="group-scroll__list">
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2879"></app-icon>
+            <p class="group-scroll__item-text">Extra large icons</p>
+          </button>
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2886"></app-icon>
+            <p class="group-scroll__item-text">Large icons</p>
+          </button>
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2893"></app-icon>
+            <p class="group-scroll__item-text">Medium icons</p>
+          </button>
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2900"></app-icon>
+            <p class="group-scroll__item-text">Small icons</p>
+          </button>
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2872"></app-icon>
+            <p class="group-scroll__item-text">List</p>
+          </button>
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2858"></app-icon>
+            <p class="group-scroll__item-text">Details</p>
+          </button>
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2865"></app-icon>
+            <p class="group-scroll__item-text">Tiles</p>
+          </button>
+          <button class="group-scroll__item">
+            <app-icon class="group-scroll__item-icon" [code]="2907"></app-icon>
+            <p class="group-scroll__item-text">Content</p>
+          </button>
+        </div>
+        <div class="group-scroll__buttons">
+          <button class="group-scroll__btn" disabled>
+            <span class="triangle traingle--up"></span>
+          </button>
+          <button class="group-scroll__btn" disabled>
+            <span class="triangle"></span>
+          </button>
+          <button class="group-scroll__btn group-scroll__btn--disabled">
+            <app-icon [code]="10001"></app-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="ribbon__group-label">Layout</p>
+  </div>
+  <div class="ribbon__group">
+    <div class="ribbon__group-content">
+      <button class="btn btn-lg-sm btn-lg-vert-dropdown">
+        <app-icon class="btn-lg-vert-dropdown__icon" [code]="1767"></app-icon>
+        <p class="btn-lg-vert-dropdown__label">
+          Sort<br />by <span class="triangle"></span>
+        </p>
+      </button>
+      <div class="ribbon__vertical-group">
+        <button class="btn btn-sm-hor-dropdown">
+          <app-icon class="btn-sm-hor__icon" [code]="4869"></app-icon>
+          <p class="btn-sm-hor__label">
+            Group by <span class="triangle"></span>
+          </p>
+        </button>
+        <button class="btn btn-sm-hor-dropdown">
+          <app-icon class="btn-sm-hor__icon" [code]="1777"></app-icon>
+          <p class="btn-sm-hor__label">
+            Add columns <span class="triangle"></span>
+          </p>
+        </button>
+        <button class="btn btn-sm-hor">
+          <app-icon class="btn-sm-hor__icon" [code]="2141"></app-icon>
+          <p class="btn-sm-hor__label">Size all columns to fit</p>
+        </button>
+      </div>
+    </div>
+    <p class="ribbon__group-label">Current view</p>
+  </div>
+  <div class="ribbon__group">
+    <div class="ribbon__group-content">
+      <div class="ribbon__vertical-group">
+        <div class="item_checkbox">
+          <input
+            type="checkbox"
+            id="ribbon_view_checkboxes"
+            class="item_checkbox__checkbox"
+          />
+          <label for="ribbon_view_checkboxes" class="item_checkbox__label"
+            >Item check boxes</label
+          >
+        </div>
+        <div class="item_checkbox">
+          <input
+            type="checkbox"
+            id="ribbon_view_extensions"
+            class="item_checkbox__checkbox"
+          />
+          <label for="ribbon_view_extensions" class="item_checkbox__label"
+            >File name extensions</label
+          >
+        </div>
+        <div class="item_checkbox">
+          <input
+            type="checkbox"
+            id="ribbon_view_hidden"
+            class="item_checkbox__checkbox"
+          />
+          <label for="ribbon_view_hidden" class="item_checkbox__label"
+            >Hidden items</label
+          >
+        </div>
+      </div>
+      <button class="btn btn-lg-vert btn-lg-vert--full">
+        <app-icon class="btn-lg-vert__icon" [code]="1781"></app-icon>
+        <p class="btn-lg-vert__label">Hide selected<br />items</p>
+      </button>
+    </div>
+    <p class="ribbon__group-label">Show/hide</p>
+  </div>
+  <div class="ribbon__group">
+    <div class="ribbon__group-content">
+      <div class="btn btn-lg-vert-multipart">
+        <button class="btn-lg-vert-multipart__btn">
+          <app-icon
+            class="btn-lg-vert-multipart__icon"
+            [code]="4434"
+          ></app-icon>
+        </button>
+        <button class="btn-lg-vert-multipart__btn">
+          <p class="btn-lg-vert-multipart__label">Options</p>
+          <span class="triangle"></span>
+        </button>
+      </div>
+    </div>
+    <p class="ribbon__group-label">&nbsp;</p>
+  </div>
+</div>

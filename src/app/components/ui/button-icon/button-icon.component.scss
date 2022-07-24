@@ -1,0 +1,12 @@
+.button {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #f1f7fe;
+    border: 1px solid #abd4fe;
+  }
+}

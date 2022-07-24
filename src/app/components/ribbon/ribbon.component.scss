@@ -1,0 +1,71 @@
+.ribbon {
+  font-size: 1.1rem;
+
+  .ribbon__header {
+    display: flex;
+    justify-content: space-between;
+
+    .ribbon__tabs {
+      display: flex;
+
+      .ribbon__tab {
+        height: 24px;
+        padding: 5px 15px;
+        border: 1px solid transparent;
+        z-index: 2;
+        position: relative;
+        transition: all 0.1s;
+
+        &:hover {
+          border-top: 1px solid #ebecec;
+          border-right: 1px solid #ebecec;
+          border-left: 1px solid #ebecec;
+        }
+      }
+
+      .ribbon__tab--file {
+        padding: 5px 18px;
+        color: #ffffff;
+        background: #0066b4;
+
+        &:hover {
+          background: #007ddd;
+        }
+      }
+
+      .ribbon__tab--active {
+        background: #f5f6f7;
+        border-top: 1px solid #dadbdc;
+        border-right: 1px solid #dadbdc;
+        border-left: 1px solid #dadbdc;
+        border-bottom: 1px solid #f5f6f7;
+
+        &::after {
+          content: "";
+          display: block;
+          width: 100%;
+          height: 1px;
+          background: #f5f6f7;
+          position: absolute;
+          left: 0;
+          bottom: -2px;
+        }
+      }
+    }
+    .ribbon__header-group {
+      display: flex;
+    }
+  }
+
+  .ribbon__header--collapsed {
+    border-bottom: 1px solid #dadbdc;
+  }
+
+  .ribbon__content {
+    height: 95px;
+    padding: 2px;
+    border-top: 1px solid #dadbdc;
+    border-bottom: 1px solid #dadbdc;
+    background: #f5f6f7;
+  }
+}

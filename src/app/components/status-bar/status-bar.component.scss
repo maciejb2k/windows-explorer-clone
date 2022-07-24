@@ -1,0 +1,21 @@
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .status-bar__left {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    padding-left: 15px;
+
+    .status-bar__text {
+      margin-right: 20px;
+    }
+  }
+
+  .status-bar__right {
+    display: flex;
+    align-items: center;
+  }
+}

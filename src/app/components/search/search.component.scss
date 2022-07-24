@@ -1,0 +1,96 @@
+.search {
+  height: 40px;
+  width: 100%;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+
+  .navigation {
+    display: flex;
+    align-items: center;
+
+    .navigation__btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        .chevron {
+          border-color: #3298fe;
+        }
+      }
+    }
+
+    .navigation__btn--disabled {
+      opacity: 0.5;
+    }
+
+    .navigation__prev {
+      transform: rotate(-90deg);
+      margin-right: 2px;
+    }
+    .navigation__next {
+      transform: rotate(90deg);
+      margin-left: 2px;
+    }
+
+    .navigation__history {
+      .chevron {
+        position: relative;
+        top: -1px;
+      }
+    }
+  }
+
+  .address-bar {
+    flex-grow: 1;
+    height: 30px;
+  }
+
+  .search-box {
+    height: 100%;
+
+    .search-box__input {
+      margin: 0 5px;
+      width: 340px;
+      height: 30px;
+      border: 1px solid #d9d9d9;
+      background: url("/assets/icons/10002.ico") no-repeat scroll 15px center;
+      background-size: 12px;
+      padding-left: 40px;
+
+      &::placeholder {
+        color: #828282;
+      }
+    }
+  }
+}
+
+.chevron {
+  border: solid #828282;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 2px;
+}
+
+.chevron__right {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+
+.chevron__left {
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+}
+
+.chevron__up {
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+}
+
+.chevron__down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}

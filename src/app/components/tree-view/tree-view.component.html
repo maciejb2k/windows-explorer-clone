@@ -1,1 +1,206 @@
-<p>tree-view works!</p>
+<ng-container>
+  <ul class="groups">
+    <li
+      class="group"
+      [ngClass]="{ expanded: groupsOpened.quickAccess === true }"
+    >
+      <button class="item group-item">
+        <div class="item__chevron-wrapper" (click)="toggleGroup('quickAccess')">
+          <span class="item__chevron"></span>
+        </div>
+        <app-icon class="item__icon" [code]="3584"></app-icon>
+        Qucik access
+      </button>
+      <ul class="list-parent">
+        <li class="list-item no-expand">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="910"></app-icon>
+            Desktop
+          </button>
+        </li>
+        <li class="list-item no-expand">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="1428"></app-icon>
+            Downloads
+          </button>
+        </li>
+        <li class="list-item no-expand">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="14"></app-icon>
+            gigachad
+          </button>
+        </li>
+        <li class="list-item no-expand">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="14"></app-icon>
+            htdocs
+          </button>
+        </li>
+      </ul>
+    </li>
+
+    <li class="group no-expand">
+      <button class="item group-item">
+        <div class="item__chevron-wrapper">
+          <span class="item__chevron"></span>
+        </div>
+        <app-icon class="item__icon" [code]="278"></app-icon>
+        OneDrive - Personal
+      </button>
+    </li>
+
+    <li class="group" [ngClass]="{ expanded: groupsOpened.thisPc === true }">
+      <button class="item group-item">
+        <div class="item__chevron-wrapper" (click)="toggleGroup('thisPc')">
+          <span class="item__chevron"></span>
+        </div>
+        <app-icon class="item__icon" [code]="903"></app-icon>
+        This PC
+      </button>
+      <ul class="list-parent">
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="795"></app-icon>
+            Documents
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="896"></app-icon>
+            Music
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="1634"></app-icon>
+            3D Objects
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="563"></app-icon>
+            Pictures
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="1428"></app-icon>
+            Downloads
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="910"></app-icon>
+            Desktop
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="107"></app-icon>
+            Videos
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="285"></app-icon>
+            OS (C:)
+          </button>
+        </li>
+      </ul>
+    </li>
+
+    <li class="group" [ngClass]="{ expanded: groupsOpened.libraries === true }">
+      <button class="item group-item">
+        <div class="item__chevron-wrapper" (click)="toggleGroup('libraries')">
+          <span class="item__chevron"></span>
+        </div>
+        <app-icon class="item__icon" [code]="1854"></app-icon>
+        Libraries
+      </button>
+      <ul class="list-parent">
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="1496"></app-icon>
+            Documents
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="1510"></app-icon>
+            Music
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="1503"></app-icon>
+            Pictures
+          </button>
+        </li>
+        <li class="list-item">
+          <button class="item">
+            <div class="item__chevron-wrapper">
+              <span class="item__chevron"></span>
+            </div>
+            <app-icon class="item__icon" [code]="1517"></app-icon>
+            Videos
+          </button>
+        </li>
+      </ul>
+    </li>
+
+    <li class="group" [ngClass]="{ expanded: groupsOpened.network === true }">
+      <button class="item group-item">
+        <div class="item__chevron-wrapper" (click)="toggleGroup('network')">
+          <span class="item__chevron"></span>
+        </div>
+        <app-icon class="item__icon" [code]="121"></app-icon>
+        Network
+      </button>
+    </li>
+  </ul>
+</ng-container>

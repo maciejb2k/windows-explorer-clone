@@ -1,0 +1,39 @@
+.layout-list {
+  display: inline-block;
+
+  .item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 3px;
+    height: 24px;
+
+    &:hover {
+      background: #e5f3ff;
+    }
+
+    .item__chevron-wrapper {
+      width: 24px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .item__chevron {
+        padding: 2px;
+        border: solid #b5b5b5;
+        border-width: 0 2px 2px 0;
+        transform: rotate(-45deg);
+      }
+    }
+
+    .item__icon {
+      margin-right: 5px;
+    }
+  }
+}
+
+.empty {
+  text-align: center;
+  color: #494949;
+}

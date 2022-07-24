@@ -1,0 +1,35 @@
+<div class="search">
+  <div class="navigation">
+    <button
+      class="navigation__btn navigation__prev"
+      (click)="moveBack()"
+      [ngClass]="{ 'navigation__btn--disabled': !hasPrevious }"
+      [disabled]="!hasPrevious"
+    >
+      <app-icon [code]="5017"></app-icon>
+    </button>
+    <button
+      class="navigation__btn navigation__next"
+      (click)="moveForward()"
+      [ngClass]="{ 'navigation__btn--disabled': !hasNext }"
+      [disabled]="!hasNext"
+    >
+      <app-icon [code]="5017"></app-icon>
+    </button>
+    <button class="navigation__btn navigation__history">
+      <i class="chevron chevron__down"></i>
+    </button>
+    <app-button-icon [code]="5017" (click)="moveUp()"></app-button-icon>
+  </div>
+  <div class="history"></div>
+
+  <app-address-bar></app-address-bar>
+
+  <div class="search-box">
+    <input
+      type="text"
+      class="search-box__input"
+      placeholder="Przeszukaj: file-system"
+    />
+  </div>
+</div>

@@ -1,0 +1,17 @@
+<ng-container>
+  <div class="layout-list">
+    <ul>
+      <li class="item" *ngFor="let item of items">
+        <button
+          class="item"
+          (click)="selectItem(item)"
+          (dblclick)="openFolder(item)"
+        >
+          <app-icon class="item__icon" [code]="item.node.icon"></app-icon>
+          {{ item.node.name }}
+        </button>
+      </li>
+    </ul>
+  </div>
+  <p *ngIf="!items.length" class="empty">This folder is empty.</p>
+</ng-container>

@@ -1,1 +1,34 @@
-<p>address-bar works!</p>
+<ng-container>
+  <app-icon class="current-icon" [code]="14"></app-icon>
+
+  <div class="path">
+    <button class="preview-paths">
+      <span class="chevron chevron__right"></span>
+    </button>
+    <div class="path-button">
+      <button class="path-button__location">Ten komputer</button>
+      <button class="path-button__expand">
+        <span class="chevron chevron__right"></span>
+      </button>
+    </div>
+    <div class="path-button">
+      <button class="path-button__location">Pulpit</button>
+      <button class="path-button__expand">
+        <span class="chevron chevron__right"></span>
+      </button>
+    </div>
+    <div class="path-button">
+      <button class="path-button__location">file-system</button>
+      <button class="path-button__expand">
+        <span class="chevron chevron__right"></span>
+      </button>
+    </div>
+    <button class="btn expand">
+      <span class="chevron chevron__down"></span>
+    </button>
+  </div>
+
+  <button class="btn refresh">
+    <app-icon class="referesh__icon" [code]="10003"></app-icon>
+  </button>
+</ng-container>

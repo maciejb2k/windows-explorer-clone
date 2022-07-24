@@ -1,0 +1,71 @@
+<div class="toolbar">
+  <ul class="toolbar__items">
+    <li class="toolbar__item">
+      <app-button-icon [code]="14" title="" desc=""></app-button-icon>
+    </li>
+    <li class="toolbar__item">
+      <app-button-icon [code]="2148" title="" desc=""></app-button-icon>
+    </li>
+    <li class="toolbar__item">
+      <app-button-icon [code]="1763" title="" desc=""></app-button-icon>
+    </li>
+    <li class="toolbar__item">
+      <app-button-icon [code]="1791" title="" desc=""></app-button-icon>
+    </li>
+    <li class="toolbar__item">
+      <app-button-icon [code]="788" title="" desc=""></app-button-icon>
+    </li>
+    <li class="toolbar__item">
+      <app-button-icon [code]="823" title="" desc=""></app-button-icon>
+    </li>
+  </ul>
+  <button class="toolbar__button" (click)="toogleToolbarMenu()">
+    <app-button-icon
+      [code]="10001"
+      [size]="16"
+      title="Dostosuj pasek narzędzi szybki dostęp"
+    >
+    </app-button-icon>
+  </button>
+  <div *ngIf="isToolbarMenuOpen" class="menu">
+    <p class="menu__label">Dostosuj pasek narzędzi Szybki dostęp</p>
+    <ul class="menu__list">
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox">
+          <span></span>
+        </div>
+        <div class="menu__list-item__text">Cofnij</div>
+      </li>
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox"></div>
+        <div class="menu__list-item__text">Ponów</div>
+      </li>
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox"></div>
+        <div class="menu__list-item__text">Usuń</div>
+      </li>
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox"></div>
+        <div class="menu__list-item__text">Właściwości</div>
+      </li>
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox"></div>
+        <div class="menu__list-item__text">Nowy folder</div>
+      </li>
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox"></div>
+        <div class="menu__list-item__text menu__divider">Zmień nazwę</div>
+      </li>
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox"></div>
+        <div class="menu__list-item__text menu__divider">
+          Pokaż poniżej Wstążki
+        </div>
+      </li>
+      <li class="menu__list-item">
+        <div class="menu__list-item__checkbox"></div>
+        <div class="menu__list-item__text">Minimalizuj wstążkę</div>
+      </li>
+    </ul>
+  </div>
+</div>

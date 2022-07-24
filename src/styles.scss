@@ -1,6 +1,8 @@
 @import "~normalize.css";
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -8,7 +10,6 @@
 
 html,
 body {
-  width: 100%;
   height: 100%;
 }
 
@@ -19,6 +20,7 @@ html {
 body {
   font-family: "Segoe UI", sans-serif;
   font-size: 1.6rem;
+  font-weight: 400;
   background: white;
   position: relative;
 }
@@ -79,5 +81,6 @@ fieldset {
 }
 
 img {
+  max-width: 100%;
   display: block;
 }
