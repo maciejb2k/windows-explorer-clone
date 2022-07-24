@@ -112,7 +112,7 @@ export const initFS = [
               },
               {
                 type: 'file',
-                name: 'newDocument',
+                name: 'Text document',
                 extension: 'txt',
               },
               {
@@ -122,7 +122,7 @@ export const initFS = [
               },
               {
                 type: 'file',
-                name: 'jebackomucha',
+                name: 'slodkie_kotki',
                 extension: 'xlsx',
               },
             ],
