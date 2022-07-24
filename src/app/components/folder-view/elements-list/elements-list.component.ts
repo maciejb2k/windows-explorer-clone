@@ -22,7 +22,7 @@ export class ElementsListComponent implements OnInit, OnChanges {
       const nodePath = this.fileSystemService.getPath(node);
 
       // Set new path based on path string
-      this.fileSystemService.setPath(nodePath);
+      this.fileSystemService.setNewPath(nodePath);
     }
   }
 
@@ -30,7 +30,5 @@ export class ElementsListComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {}
 
-  ngOnChanges() {
-    console.log(this.items);
-  }
+  ngOnChanges() {}
 }

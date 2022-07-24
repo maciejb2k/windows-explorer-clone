@@ -31,6 +31,11 @@ class FSFolderBuilder implements IFSFolderBuilder {
     return this;
   }
 
+  setIsUserHome(isUserHome: boolean) {
+    this.props.folder.isUserHome = isUserHome;
+    return this;
+  }
+
   setHidden(isHidden: boolean) {
     this.props.item.isHidden = isHidden;
     return this;

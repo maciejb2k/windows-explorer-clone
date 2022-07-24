@@ -4,6 +4,7 @@ import { FSFile } from './fs-file';
 interface IFolderProps {
   children?: (FSFolder | FSFile)[];
   isSystem?: boolean;
+  isUserHome?: boolean;
   isLibrary?: boolean;
 }
 
@@ -11,11 +12,17 @@ class FolderProps implements IFolderProps {
   children: (FSFolder | FSFile)[];
   isSystem: boolean;
   isLibrary: boolean;
+  isUserHome: boolean;
 
-  constructor({ isSystem = false, isLibrary = false }: IFolderProps) {
+  constructor({
+    isSystem = false,
+    isLibrary = false,
+    isUserHome = false,
+  }: IFolderProps) {
     this.children = [];
     this.isSystem = isSystem;
     this.isLibrary = isLibrary;
+    this.isUserHome = isUserHome;
   }
 }
 

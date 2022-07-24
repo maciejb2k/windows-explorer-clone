@@ -1,3 +1,4 @@
+import { QUICK_ACCESS } from './../common/views-constants';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { FSDevice } from '../models/fs-device';
@@ -21,27 +22,36 @@ import {
 } from '../models/types';
 import { ExplorerHistory } from '../models/history';
 
+import { USER_HOME, SYSTEM_FOLDERS } from 'src/app/common/views-constants';
+
 @Injectable({
   providedIn: 'root',
 })
 export class FileSystemService {
   private fs$: BehaviorSubject<FSDevices>;
-  private osDevice$!: BehaviorSubject<FSDevice>; // os disk always present
+  private devices$: BehaviorSubject<{ [key: string]: FSDevice }>;
+  private osDevice$!: BehaviorSubject<FSDevice>; // os disk always present;
 
   private path$: BehaviorSubject<string>;
+  private pathUrl$: BehaviorSubject<{ label: string; path: string }[]>;
   private currentFolder$!: BehaviorSubject<FSDevice | FSFolder | undefined>;
 
   private history$: BehaviorSubject<ExplorerHistory>;
 
   private selectedItems$: BehaviorSubject<FSItems[]>;
 
+  public sysObjectsRefs: { [key: string]: FSParentObjects } = {};
+
   constructor() {
     this.fs$ = new BehaviorSubject(initDevices);
     this.path$ = new BehaviorSubject<string>('C:\\');
+    this.pathUrl$ = new BehaviorSubject<{ label: string; path: string }[]>([]);
     this.history$ = new BehaviorSubject<ExplorerHistory>(new ExplorerHistory());
     this.selectedItems$ = new BehaviorSubject<FSItems[]>([]);
+    this.devices$ = new BehaviorSubject<{ [key: string]: FSDevice }>({});
 
     this.setHistory(this.path$.value);
+    this.buildInteractivePath();
 
     // Set current folder from current path
     // Always present if path is valid folder/disk, not special view
@@ -55,6 +65,11 @@ export class FileSystemService {
 
     // Choose OS device
     Object.keys(initDevices).forEach((key) => {
+      this.devices$.next({
+        ...this.devices$.value,
+        [initDevices[key].device.letter]: initDevices[key],
+      });
+
       if (initDevices[key].device.isOs) {
         this.osDevice$ = new BehaviorSubject(initDevices[key]);
       }
@@ -71,9 +86,12 @@ export class FileSystemService {
   initFileSystem() {
     const fs = this.getFs();
     const osDevice = this.getCurrentDevice();
+    const devices = this.getDevices();
 
-    // Setup Windows file structure on OS Device
-    this.buildFSFromJson(initFS, osDevice);
+    // Iterate over init devices and setup file structure
+    Object.keys(devices).forEach((letter) => {
+      this.buildFSFromJson(initFS[letter], devices[letter]);
+    });
 
     // Emit the same values to subscribers, nothing changed, because
     // objects are referenced and not copied
@@ -113,6 +131,10 @@ export class FileSystemService {
 
         if ('isSystem' in item) {
           builder.setIsSystem(item.isSystem);
+
+          if ('isUserHome' in item) {
+            builder.setIsUserHome(item.isUserHome);
+          }
         }
       } else if (item.type === 'file') {
         builder = new FSFileBuilder(item.name, parentObject);
@@ -131,6 +153,24 @@ export class FileSystemService {
 
       if (newObject instanceof FSFolder || newObject instanceof FSDevice) {
         this.buildFSFromJson(item.children, newObject);
+        if (newObject.folder.isSystem) {
+          this.setRefFromSystemObject(newObject);
+        }
+      }
+    });
+  }
+
+  // Asssign references to system objects from FS
+  // TODO! - What if object doesn't exist and we want to navigate to it?
+  setRefFromSystemObject(item: FSParentObjects) {
+    if (item.folder.isUserHome) {
+      this.sysObjectsRefs[USER_HOME] = item;
+      return;
+    }
+
+    SYSTEM_FOLDERS.forEach((folder) => {
+      if (item.node.name === folder) {
+        this.sysObjectsRefs[folder] = item;
       }
     });
   }
@@ -162,11 +202,7 @@ export class FileSystemService {
     return pathStr;
   }
 
-  // TODO - Refactor to search through all disks
-  // TODO - Trailling slash in path is not handled
-  getNodeFromPath(path: string): FSObjects | undefined {
-    // backup regex - !/^(?:[a-z]:)[\/\\](?:[.\/\\ ](?![.\/\\\n])|[^<>:"|?*.\/\\ \n])*$/i.test(
-    // Windows path regex
+  splitPath(path: string) {
     if (
       !/^(?:[a-z]:)[\/\\](?:[.\/\\ ](?![\/\\\n])|[^<>:"|?*.\/\\ \n])*$/i.test(
         path
@@ -176,10 +212,17 @@ export class FileSystemService {
     }
 
     // Replaces '/' with '\' and returns array of elements from path
-    const arr = path
+    return path
       .replace(/\//g, '\\')
       .split('\\')
       .filter((i) => i);
+  }
+  // TODO - Refactor to search through all disks
+  // TODO - Trailling slash in path is not handled
+  getNodeFromPath(path: string): FSObjects | undefined {
+    // Split array to path
+    const arr = this.splitPath(path);
+    if (!arr) return;
 
     // Always present due to regex
     const diskLetter = arr[0];
@@ -271,7 +314,7 @@ export class FileSystemService {
 
     if (currentFolder && currentFolder.node.parent) {
       console.log(this.getPath(currentFolder.node.parent));
-      this.setPath(this.getPath(currentFolder.node.parent));
+      this.setNewPath(this.getPath(currentFolder.node.parent));
     }
   }
 
@@ -282,7 +325,7 @@ export class FileSystemService {
     const current = history.getCurrent();
 
     if (current) {
-      this.path$.next(current);
+      this.setPath(current);
       this.history$.next(history);
       this.setCurrentFolder();
     }
@@ -300,7 +343,7 @@ export class FileSystemService {
     const current = history.getCurrent();
 
     if (current) {
-      this.path$.next(current);
+      this.setPath(current);
       this.history$.next(history);
       this.setCurrentFolder();
     }
@@ -331,10 +374,101 @@ export class FileSystemService {
     return this.osDevice$.value;
   }
 
-  setPath(newPath: string) {
-    this.path$.next(newPath);
+  openSystemObject(item: string) {
+    const path = this.getPath(this.sysObjectsRefs[item]);
+    this.setNewPath(path);
+  }
+
+  openDevice(letter: string) {
+    const device = this.getDevice(letter);
+
+    if (!device) {
+      return;
+    }
+
+    const path = this.getPath(device);
+    this.setNewPath(path);
+  }
+
+  setNewPath(newPath: string) {
+    if (this.path$.value === newPath) {
+      return;
+    }
+
+    this.setPath(newPath);
     this.setHistory(newPath);
     this.setCurrentFolder();
+  }
+
+  setPath(path: string) {
+    this.path$.next(path);
+    this.buildInteractivePath();
+  }
+
+  buildInteractivePath() {
+    const path = this.path$.value;
+    const newPath = [];
+
+    // Check whether path is prepared view, not dynamic
+    if (path.startsWith('$')) {
+      const name = this.getNameFromViewPath(path);
+
+      newPath.push({
+        label: name,
+        path: path,
+      });
+
+      this.pathUrl$.next(newPath);
+      return;
+    }
+
+    // Split path to array
+    let arr = this.splitPath(path);
+    if (!arr) return;
+
+    // First path element is always This PC
+    const name = this.getNameFromViewPath(THIS_PC);
+    newPath.push({
+      label: name,
+      path: THIS_PC,
+    });
+
+    // Build path elements from array
+    for (let i = 0; i < arr.length; i++) {
+      let path = '';
+
+      for (let j = 0; j <= i; j++) {
+        path += arr[j] + '\\';
+      }
+
+      let node = this.getNodeFromPath(path);
+
+      // TODO! - Jak to wyleci to znaczy że coś się skurwiło ostro XDDD
+      if (!node) {
+        throw new Error("Can't find node by path: " + path);
+      }
+
+      newPath.push({
+        label: i === 0 ? `${node.node.name} (${arr[i]})` : arr[i],
+        path,
+        node,
+      });
+    }
+
+    // Update path
+    this.pathUrl$.next(newPath);
+  }
+
+  getNameFromViewPath(path: string) {
+    if (path === THIS_PC) {
+      return 'This PC';
+    } else if (path === QUICK_ACCESS) {
+      return 'Quick access';
+    } else if (path === LIBRARIES) {
+      return 'Libraries';
+    }
+
+    return '';
   }
 
   getPathObs() {
@@ -379,5 +513,25 @@ export class FileSystemService {
 
   getSelectedItems() {
     return this.selectedItems$.value;
+  }
+
+  getDevice(letter: string) {
+    return this.devices$.value[letter];
+  }
+
+  getDevices() {
+    return this.devices$.value;
+  }
+
+  getDevicesObs() {
+    return this.devices$;
+  }
+
+  getPathUrlObs() {
+    return this.pathUrl$.asObservable();
+  }
+
+  getPathUrl() {
+    return this.pathUrl$.value;
   }
 }
