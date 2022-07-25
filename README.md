@@ -1,6 +1,6 @@
 # Windows 10 File Explorer Clone
 
-**Microsoft please don't ban me for using Windows Icons, Segoe UI font and Windows 10 wallpaper. This project is't commercial and is only for learning purposes.**
+**Microsoft please don't ban me for using Windows Icons, Segoe UI font and Windows 10 wallpaper. This project isn't commercial and is only for learning purposes.**
 
 This is a demo of partially working Windows 10 file explorer recreated in Angular. Right now I've done only most of UI and provided basic files browsing.
 

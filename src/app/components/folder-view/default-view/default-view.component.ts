@@ -1,4 +1,7 @@
+import { FSItemsView } from './../../../models/types';
 import { Component, Input, OnInit } from '@angular/core';
+import { FSFile } from 'src/app/models/fs-file';
+import { FSFolder } from 'src/app/models/fs-folder';
 import { FileSystemService } from 'src/app/services/file-system.service';
 
 @Component({
@@ -7,7 +10,7 @@ import { FileSystemService } from 'src/app/services/file-system.service';
   styleUrls: ['./default-view.component.scss'],
 })
 export class DefaultViewComponent implements OnInit {
-  public items!: Object[];
+  public items!: FSItemsView;
 
   constructor(private fileSystemService: FileSystemService) {
     this.fileSystemService.getPathObs().subscribe(() => {
@@ -19,7 +22,5 @@ export class DefaultViewComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    console.log(this.items);
-  }
+  ngOnInit(): void {}
 }

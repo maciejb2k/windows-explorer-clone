@@ -1,3 +1,4 @@
+import { FSItemsView } from './../../../models/types';
 import { FSDevice } from 'src/app/models/fs-device';
 import { FileSystemService } from 'src/app/services/file-system.service';
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
@@ -10,10 +11,16 @@ import { FSFolder } from 'src/app/models/fs-folder';
   styleUrls: ['./elements-list.component.scss'],
 })
 export class ElementsListComponent implements OnInit, OnChanges {
-  @Input() items!: any;
+  @Input() items!: FSItemsView;
+  @Input() hasGroups!: boolean;
 
-  constructor(private fileSystemService: FileSystemService) {
-    console.log(this.items);
+  groupsOpened: { [key: string]: boolean } = {};
+
+  constructor(private fileSystemService: FileSystemService) {}
+
+  toggleGroup(e: Event, name: string) {
+    e.stopPropagation();
+    this.groupsOpened[name] = !this.groupsOpened[name];
   }
 
   openFolder(node: any) {
@@ -28,7 +35,11 @@ export class ElementsListComponent implements OnInit, OnChanges {
 
   selectItem(node: any) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.hasGroups) {
+      this.items.forEach((item) => (this.groupsOpened[item.name] = true));
+    }
+  }
 
   ngOnChanges() {}
 }

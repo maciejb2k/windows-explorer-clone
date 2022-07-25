@@ -1,4 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
+import { FileSystemService } from 'src/app/services/file-system.service';
 
 @Component({
   selector: 'app-title-bar',
@@ -7,9 +8,13 @@ import { Component, OnInit, Input } from '@angular/core';
   host: { class: 'title-bar' },
 })
 export class TitleBarComponent implements OnInit {
-  @Input() name!: string;
+  location!: string;
 
-  constructor() {}
+  constructor(private fileSystemService: FileSystemService) {
+    this.fileSystemService.getDisplayLocationObs().subscribe((location) => {
+      this.location = location;
+    });
+  }
 
   ngOnInit(): void {}
 }

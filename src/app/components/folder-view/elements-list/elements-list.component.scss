@@ -1,3 +1,64 @@
+.group {
+  padding-bottom: 10px;
+
+  .group__header {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+
+    &:hover {
+      background: #e5f3ff;
+      cursor: pointer;
+    }
+
+    .group__heading {
+      font-weight: 400;
+      font-size: 1.6rem;
+      color: #243b9e;
+      padding: 0 5px 0 10px;
+      min-width: auto;
+      flex-shrink: 0;
+    }
+
+    .group__chevron {
+      border: solid #828282;
+      border-width: 0 1px 1px 0;
+      display: inline-block;
+      padding: 4px;
+      transform: rotate(-45deg);
+      -webkit-transform: rotate(-45deg);
+    }
+
+    .group__separator {
+      flex-grow: 1;
+      display: block;
+      width: 100%;
+      height: 1px;
+      background-color: #e5e5e5;
+    }
+  }
+
+  .group__body {
+    max-height: 0;
+    transition: max-height 0.15s ease-out;
+    overflow: hidden;
+  }
+}
+
+.group--expanded {
+  .group__header {
+    .group__chevron {
+      transform: rotate(45deg);
+      -webkit-transform: rotate(45deg);
+    }
+  }
+
+  .group__body {
+    max-height: 1000px;
+    transition: max-height 1s linear;
+  }
+}
+
 .layout-list {
   display: inline-block;
 

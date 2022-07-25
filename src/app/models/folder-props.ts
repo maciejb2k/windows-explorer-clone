@@ -1,6 +1,8 @@
 import { FSFolder } from './fs-folder';
 import { FSFile } from './fs-file';
 
+// TODO - REFACTOR Z TYM ISUSERHOME ZEBY NIE BYLO W KAZDYM NODE
+
 interface IFolderProps {
   children?: (FSFolder | FSFile)[];
   isSystem?: boolean;

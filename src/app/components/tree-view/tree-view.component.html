@@ -15,31 +15,13 @@
         Quick access
       </button>
       <ul class="list-parent">
-        <li class="list-item no-expand">
-          <button class="item" (click)="openFolder(DESKTOP)">
+        <li class="list-item no-expand" *ngFor="let item of quickAccessTree">
+          <button class="item" (click)="openFolder(item)">
             <div class="item__chevron-wrapper">
               <span class="item__chevron"></span>
             </div>
-            <app-icon class="item__icon" [code]="910"></app-icon>
-            Desktop
-          </button>
-        </li>
-        <li class="list-item no-expand">
-          <button class="item" (click)="openFolder(DOWNLOADS)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="1428"></app-icon>
-            Downloads
-          </button>
-        </li>
-        <li class="list-item no-expand">
-          <button class="item" (click)="openFolder(USER_HOME)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="14"></app-icon>
-            Maciej
+            <app-icon class="item__icon" [code]="item.node.icon"></app-icon>
+            {{ item.node.name }}
           </button>
         </li>
       </ul>
@@ -67,84 +49,22 @@
         This PC
       </button>
       <ul class="list-parent">
-        <li class="list-item">
-          <button class="item" (click)="openFolder(DOCUMENTS)">
+        <li class="list-item" *ngFor="let item of thisPcTree">
+          <button class="item" (click)="openFolder(item)">
             <div class="item__chevron-wrapper">
               <span class="item__chevron"></span>
             </div>
-            <app-icon class="item__icon" [code]="795"></app-icon>
-            Documents
-          </button>
-        </li>
-        <li class="list-item">
-          <button class="item" (click)="openFolder(MUSIC)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="896"></app-icon>
-            Music
-          </button>
-        </li>
-        <li class="list-item">
-          <button class="item" (click)="openFolder(OBJECTS_3D)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="1634"></app-icon>
-            3D Objects
-          </button>
-        </li>
-        <li class="list-item">
-          <button class="item" (click)="openFolder(PICTURES)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="563"></app-icon>
-            Pictures
-          </button>
-        </li>
-        <li class="list-item">
-          <button class="item" (click)="openFolder(DOWNLOADS)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="1428"></app-icon>
-            Downloads
-          </button>
-        </li>
-        <li class="list-item">
-          <button class="item" (click)="openFolder(DESKTOP)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="910"></app-icon>
-            Desktop
-          </button>
-        </li>
-        <li class="list-item">
-          <button class="item" (click)="openFolder(VIDEOS)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon class="item__icon" [code]="107"></app-icon>
-            Videos
-          </button>
-        </li>
-        <li class="list-item" *ngFor="let item of devices | keyvalue">
-          <button class="item" (click)="openDevice(item.value.device.letter)">
-            <div class="item__chevron-wrapper">
-              <span class="item__chevron"></span>
-            </div>
-            <app-icon
-              class="item__icon"
-              [code]="item.value.device.isOs ? 285 : 201"
-            ></app-icon>
-            {{ item.value.node.name }} ({{ item.value.device.letter }})
+            <app-icon class="item__icon" [code]="item.node.icon"></app-icon>
+            {{ item.node.name }}
           </button>
         </li>
       </ul>
     </li>
 
+    <!-- TODO! REFACTOR TO GÓWNO ŻEBY TEŻ SZŁO Z VIEW SYSTEMOWEGO A NIE NA SZTYWNO,
+    TYLKO ŻEBY TO ZROBIĆ TO TRZEBA DODAĆ KURWA NOWY TYP OBIEKTÓW W SYSTEMIE 
+    aka. `Library` KTÓRY BĘDZIE WSKAZYWAĆ NA BIBLIOETKI X       X       DDDDD,
+    może kiedys bo mi sie nie chce -->
     <li class="group" [ngClass]="{ expanded: groupsOpened.libraries === true }">
       <button class="item group-item" (click)="openView(LIBRARIES)">
         <div
@@ -158,7 +78,7 @@
       </button>
       <ul class="list-parent">
         <li class="list-item">
-          <button class="item" (click)="openFolder(DOCUMENTS)">
+          <button class="item" (click)="openSystemObject(DOCUMENTS)">
             <div class="item__chevron-wrapper">
               <span class="item__chevron"></span>
             </div>
@@ -167,7 +87,7 @@
           </button>
         </li>
         <li class="list-item">
-          <button class="item" (click)="openFolder(MUSIC)">
+          <button class="item" (click)="openSystemObject(MUSIC)">
             <div class="item__chevron-wrapper">
               <span class="item__chevron"></span>
             </div>
@@ -176,7 +96,7 @@
           </button>
         </li>
         <li class="list-item">
-          <button class="item" (click)="openFolder(PICTURES)">
+          <button class="item" (click)="openSystemObject(PICTURES)">
             <div class="item__chevron-wrapper">
               <span class="item__chevron"></span>
             </div>
@@ -185,7 +105,7 @@
           </button>
         </li>
         <li class="list-item">
-          <button class="item" (click)="openFolder(VIDEOS)">
+          <button class="item" (click)="openSystemObject(VIDEOS)">
             <div class="item__chevron-wrapper">
               <span class="item__chevron"></span>
             </div>

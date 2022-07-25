@@ -10,3 +10,7 @@ export type FSParentObjects = FSDevice | FSFolder;
 export type FSJson = { [key: string]: any }[];
 export type FSBuilders = FSFolderBuilder | FSFileBuilder;
 export type FSDevices = { [key: string]: FSDevice };
+export type FSItemsView = {
+  name: string;
+  children: FSObjects[];
+}[];

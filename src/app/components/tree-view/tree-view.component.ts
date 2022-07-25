@@ -1,3 +1,4 @@
+import { FSItemsView, FSObjects } from './../../models/types';
 import {} from './../../common/views-constants';
 import { Component, OnInit } from '@angular/core';
 import {
@@ -17,6 +18,7 @@ import {
 } from 'src/app/common/views-constants';
 import { FileSystemService } from 'src/app/services/file-system.service';
 import { FSDevice } from 'src/app/models/fs-device';
+import { FSFolder } from 'src/app/models/fs-folder';
 
 @Component({
   selector: 'app-tree-view',
@@ -45,32 +47,49 @@ export class TreeViewComponent implements OnInit {
     network: false,
   };
 
-  public devices!: { [key: string]: FSDevice };
+  public quickAccessTree: FSObjects[] = [];
+  public thisPcTree: FSObjects[] = [];
 
   constructor(private fileSystemService: FileSystemService) {
-    console.log(this.fileSystemService.sysObjectsRefs);
-
-    this.fileSystemService.getDevicesObs().subscribe((devices) => {
-      this.devices = devices;
+    this.fileSystemService.getQuickAccessRefsObs().subscribe((value) => {
+      value.forEach((group) => {
+        this.quickAccessTree.push(...group.children);
+      });
+      console.log(this.quickAccessTree);
     });
 
-    console.log(this.devices);
+    this.fileSystemService.getThisPcRefsObs().subscribe((value) => {
+      value.forEach((group) => {
+        this.thisPcTree.push(...group.children);
+      });
+      console.log(this.thisPcTree);
+    });
   }
 
   ngOnInit(): void {}
-  path!: string;
 
   toggleGroup(e: Event, name: string) {
     e.stopPropagation();
     this.groupsOpened[name] = !this.groupsOpened[name];
   }
 
-  openView(path: string) {
-    this.fileSystemService.setNewPath(path);
+  openFolder(node: FSObjects) {
+    if (node instanceof FSFolder || node instanceof FSDevice) {
+      // Get path of node
+      const nodePath = this.fileSystemService.getPath(node);
+
+      // Set new path based on path string
+      this.fileSystemService.setNewPath(nodePath);
+    }
   }
 
-  openFolder(item: string) {
+  // TODO! - WYKURWIĆ TO W PRZYSZŁOŚCI I ZROBIĆ BIBLIOTEKI TEŻ Z VIEW
+  openSystemObject(item: string) {
     this.fileSystemService.openSystemObject(item);
+  }
+
+  openView(path: string) {
+    this.fileSystemService.setNewPath(path);
   }
 
   openDevice(letter: string) {

@@ -4,8 +4,8 @@ import { FSDevices } from './types';
 export const initDevices: FSDevices = {
   'C:': new FSDevice({
     node: {
-      name: 'OS',
-      icon: 14,
+      name: 'OS (C:)',
+      icon: 285,
       parent: null,
     },
     folder: {
@@ -19,8 +19,8 @@ export const initDevices: FSDevices = {
   }),
   'D:': new FSDevice({
     node: {
-      name: 'Storage',
-      icon: 14,
+      name: 'Storage (D:)',
+      icon: 201,
       parent: null,
     },
     folder: {
@@ -34,8 +34,8 @@ export const initDevices: FSDevices = {
   }),
   'K:': new FSDevice({
     node: {
-      name: 'Backup',
-      icon: 14,
+      name: 'Backup (K:)',
+      icon: 201,
       parent: null,
     },
     folder: {
@@ -182,7 +182,7 @@ export const initFS: any = {
             {
               type: 'folder',
               name: 'OneDrive',
-              icon: 14,
+              icon: 278,
               isSystem: true,
               children: [],
             },

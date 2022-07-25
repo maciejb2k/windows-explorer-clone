@@ -23,3 +23,15 @@ export const SYSTEM_FOLDERS: string[] = [
   PUBLIC,
   OBJECTS_3D,
 ];
+
+export const VIEW_THIS_PC: string[] = [
+  OBJECTS_3D,
+  DESKTOP,
+  DOCUMENTS,
+  DOWNLOADS,
+  MUSIC,
+  PICTURES,
+  VIDEOS,
+];
+
+export const VIEW_QUICK_ACCESS: string[] = [DESKTOP, DOWNLOADS, USER_HOME];

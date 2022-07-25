@@ -1,4 +1,8 @@
-import { QUICK_ACCESS } from './../common/views-constants';
+import {
+  QUICK_ACCESS,
+  VIEW_THIS_PC,
+  VIEW_QUICK_ACCESS,
+} from './../common/views-constants';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { FSDevice } from '../models/fs-device';
@@ -19,6 +23,7 @@ import {
   FSObjects,
   FSBuilders,
   FSItems,
+  FSItemsView,
 } from '../models/types';
 import { ExplorerHistory } from '../models/history';
 
@@ -31,15 +36,16 @@ export class FileSystemService {
   private fs$: BehaviorSubject<FSDevices>;
   private devices$: BehaviorSubject<{ [key: string]: FSDevice }>;
   private osDevice$!: BehaviorSubject<FSDevice>; // os disk always present;
-
   private path$: BehaviorSubject<string>;
   private pathUrl$: BehaviorSubject<{ label: string; path: string }[]>;
+  private displayLocation$: BehaviorSubject<string>;
   private currentFolder$!: BehaviorSubject<FSDevice | FSFolder | undefined>;
-
   private history$: BehaviorSubject<ExplorerHistory>;
-
   private selectedItems$: BehaviorSubject<FSItems[]>;
 
+  private quickAccessRefs$: BehaviorSubject<FSItemsView>;
+  private thisPcRefs$: BehaviorSubject<FSItemsView>;
+  private librariesRefs$: BehaviorSubject<FSItemsView>;
   public sysObjectsRefs: { [key: string]: FSParentObjects } = {};
 
   constructor() {
@@ -48,11 +54,17 @@ export class FileSystemService {
     this.pathUrl$ = new BehaviorSubject<{ label: string; path: string }[]>([]);
     this.history$ = new BehaviorSubject<ExplorerHistory>(new ExplorerHistory());
     this.selectedItems$ = new BehaviorSubject<FSItems[]>([]);
+    this.displayLocation$ = new BehaviorSubject<string>(this.path$.value);
     this.devices$ = new BehaviorSubject<{ [key: string]: FSDevice }>({});
+    this.quickAccessRefs$ = new BehaviorSubject<FSItemsView>([]);
+    this.thisPcRefs$ = new BehaviorSubject<FSItemsView>([]);
+    this.librariesRefs$ = new BehaviorSubject<FSItemsView>([]);
 
     this.setHistory(this.path$.value);
     this.buildInteractivePath();
 
+    // TODO! - REFACTOR, ZEBY INIT WARTOSCIA W PATH BYL JAKIS VIEW A NIE FOLDER
+    // Wgl refactor tego bo to do pizdy jest tak ze hit
     // Set current folder from current path
     // Always present if path is valid folder/disk, not special view
     // from constant
@@ -77,6 +89,9 @@ export class FileSystemService {
 
     // Init file system structure on OS device
     this.initFileSystem();
+
+    // Init special windows views (this pc, quick access) which aren't folders
+    this.setupViews();
   }
 
   // Ta funkcja jest spierdolona i nie działa,
@@ -85,7 +100,6 @@ export class FileSystemService {
   // A podobno za używanie `.value` na BehaviorSubject'ach jest wpierdol.
   initFileSystem() {
     const fs = this.getFs();
-    const osDevice = this.getCurrentDevice();
     const devices = this.getDevices();
 
     // Iterate over init devices and setup file structure
@@ -98,26 +112,40 @@ export class FileSystemService {
     this.fs$.next(fs);
   }
 
+  setupViews() {
+    this.setupThisPcView();
+    this.setupQuickAccessView();
+  }
+
   // Returns nodes from current folder
   listNodesFromPath() {
     // Pobieramy aktualny folder z ścieżki
     const node = this.getNodeFromPath(this.path$.value);
 
+    const setupNodes: FSItemsView = [
+      {
+        name: 'Files',
+        children: [],
+      },
+    ];
+
     // Jeżeli node nie jest typu folder lub device to zwróć
     if (!(node instanceof FSDevice) && !(node instanceof FSFolder)) {
-      return [];
+      return setupNodes;
     }
 
     // If folder is empty
     if (node.folder.children.length === 0) {
-      return [];
+      return setupNodes;
     }
 
     // Uwaga bo to jest referencja do obiektu, nie kopia
     // na oryginalnym FS to sortuje, nie na wycinku, ktory chcialem sobie pobrac
     node.folder.children.sort((a, b) => a.node.name.localeCompare(b.node.name));
 
-    return node.folder.children;
+    setupNodes[0].children = node.folder.children;
+
+    return setupNodes;
   }
 
   // TODO - REFACTOR THIS GÓWNO PIERDOLONE XDDDDDDDDDDDDDD
@@ -175,6 +203,52 @@ export class FileSystemService {
     });
   }
 
+  setupThisPcView() {
+    const setupView: FSItemsView = [
+      {
+        name: 'Folders',
+        children: [],
+      },
+      {
+        name: 'Devices and drives',
+        children: [],
+      },
+    ];
+
+    Object.keys(this.sysObjectsRefs).forEach((key) => {
+      if (VIEW_THIS_PC.includes(key)) {
+        setupView[0].children.push(this.sysObjectsRefs[key]);
+      }
+    });
+
+    const devices = this.devices$.value;
+
+    Object.keys(devices).forEach((key) => {
+      setupView[1].children.push(devices[key]);
+    });
+
+    this.thisPcRefs$.next(setupView);
+  }
+
+  setupQuickAccessView() {
+    const setupView: FSItemsView = [
+      {
+        name: 'Frequent Folders',
+        children: [],
+      },
+    ];
+
+    Object.keys(this.sysObjectsRefs).forEach((key) => {
+      if (VIEW_QUICK_ACCESS.includes(key)) {
+        setupView[0].children.push(this.sysObjectsRefs[key]);
+      }
+    });
+
+    this.quickAccessRefs$.next(setupView);
+  }
+
+  setupLibrariesView() {}
+
   // Returns path from given node
   getPath(node: FSObjects) {
     let path: string[] = [];
@@ -202,6 +276,7 @@ export class FileSystemService {
     return pathStr;
   }
 
+  // Split path to array of strings
   splitPath(path: string) {
     if (
       !/^(?:[a-z]:)[\/\\](?:[.\/\\ ](?![\/\\\n])|[^<>:"|?*.\/\\ \n])*$/i.test(
@@ -217,6 +292,7 @@ export class FileSystemService {
       .split('\\')
       .filter((i) => i);
   }
+
   // TODO - Refactor to search through all disks
   // TODO - Trailling slash in path is not handled
   getNodeFromPath(path: string): FSObjects | undefined {
@@ -250,7 +326,8 @@ export class FileSystemService {
         const index = this.getItemIndexFromFolder(arr[i], current);
 
         // Return if element doesn't exist
-        if (index < 0) return;
+        // TODO! - Tu się coś pierdoliło przedtem
+        if (index < 0) break;
 
         // Set to variable object found by name
         const foundNode: FSItems = current.folder.children[index];
@@ -315,7 +392,10 @@ export class FileSystemService {
     if (currentFolder && currentFolder.node.parent) {
       console.log(this.getPath(currentFolder.node.parent));
       this.setNewPath(this.getPath(currentFolder.node.parent));
+      return;
     }
+
+    this.setNewPath(THIS_PC);
   }
 
   // TODO - Refactor
@@ -358,22 +438,6 @@ export class FileSystemService {
     return name1.toLowerCase() === name2.toLowerCase();
   }
 
-  getFsObs() {
-    return this.fs$.asObservable();
-  }
-
-  getFs() {
-    return this.fs$.value;
-  }
-
-  getCurrentDeviceObs() {
-    return this.osDevice$.asObservable();
-  }
-
-  getCurrentDevice() {
-    return this.osDevice$.value;
-  }
-
   openSystemObject(item: string) {
     const path = this.getPath(this.sysObjectsRefs[item]);
     this.setNewPath(path);
@@ -398,6 +462,7 @@ export class FileSystemService {
     this.setPath(newPath);
     this.setHistory(newPath);
     this.setCurrentFolder();
+    this.setDisplayLocation();
   }
 
   setPath(path: string) {
@@ -449,7 +514,7 @@ export class FileSystemService {
       }
 
       newPath.push({
-        label: i === 0 ? `${node.node.name} (${arr[i]})` : arr[i],
+        label: node.node.name,
         path,
         node,
       });
@@ -458,6 +523,8 @@ export class FileSystemService {
     // Update path
     this.pathUrl$.next(newPath);
   }
+
+  formatTitlePath() {}
 
   getNameFromViewPath(path: string) {
     if (path === THIS_PC) {
@@ -471,10 +538,6 @@ export class FileSystemService {
     return '';
   }
 
-  getPathObs() {
-    return this.path$.asObservable();
-  }
-
   setCurrentFolder() {
     const currentNode = this.getNodeFromPath(this.path$.value);
 
@@ -485,18 +548,50 @@ export class FileSystemService {
     }
   }
 
-  getCurrentFolderObs() {
-    return this.currentFolder$.asObservable();
-  }
+  setDisplayLocation() {
+    const path = this.path$.value;
 
-  getCurrentFolder() {
-    return this.currentFolder$.value;
+    if (path.startsWith('$')) {
+      const name = this.getNameFromViewPath(path);
+      this.displayLocation$.next(name);
+      return;
+    }
+
+    this.displayLocation$.next(path);
   }
 
   setHistory(value: string) {
     const history = this.history$.value;
     history.push(value);
     this.history$.next(history);
+  }
+
+  getFsObs() {
+    return this.fs$.asObservable();
+  }
+
+  getFs() {
+    return this.fs$.value;
+  }
+
+  getCurrentDeviceObs() {
+    return this.osDevice$.asObservable();
+  }
+
+  getCurrentDevice() {
+    return this.osDevice$.value;
+  }
+
+  getPathObs() {
+    return this.path$.asObservable();
+  }
+
+  getCurrentFolderObs() {
+    return this.currentFolder$.asObservable();
+  }
+
+  getCurrentFolder() {
+    return this.currentFolder$.value;
   }
 
   getHistoryObs() {
@@ -533,5 +628,29 @@ export class FileSystemService {
 
   getPathUrl() {
     return this.pathUrl$.value;
+  }
+
+  getDisplayLocationObs() {
+    return this.displayLocation$.asObservable();
+  }
+
+  getDisplayLocation() {
+    return this.displayLocation$.value;
+  }
+
+  getThisPcRefsObs() {
+    return this.thisPcRefs$.asObservable();
+  }
+
+  getThisPcRefs() {
+    return this.thisPcRefs$.value;
+  }
+
+  getQuickAccessRefsObs() {
+    return this.quickAccessRefs$.asObservable();
+  }
+
+  getQuickAccessRefs() {
+    return this.quickAccessRefs$.value;
   }
 }
