@@ -9,18 +9,12 @@ import { FileSystemService } from 'src/app/services/file-system.service';
   templateUrl: './default-view.component.html',
   styleUrls: ['./default-view.component.scss'],
 })
-export class DefaultViewComponent implements OnInit {
+export class DefaultViewComponent {
   public items!: FSItemsView;
 
   constructor(private fileSystemService: FileSystemService) {
     this.fileSystemService.getPathObs().subscribe(() => {
       this.items = this.fileSystemService.listNodesFromPath();
     });
-
-    this.fileSystemService.getHistoryObs().subscribe((value) => {
-      console.log(value);
-    });
   }
-
-  ngOnInit(): void {}
 }

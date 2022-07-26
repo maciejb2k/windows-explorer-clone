@@ -1,5 +1,5 @@
 import { FSItemsView, FSObjects } from './../../models/types';
-import {} from './../../common/views-constants';
+import {} from '../../common/constants';
 import { Component, OnInit } from '@angular/core';
 import {
   THIS_PC,
@@ -15,7 +15,7 @@ import {
   PUBLIC,
   OBJECTS_3D,
   USER_HOME,
-} from 'src/app/common/views-constants';
+} from 'src/app/common/constants';
 import { FileSystemService } from 'src/app/services/file-system.service';
 import { FSDevice } from 'src/app/models/fs-device';
 import { FSFolder } from 'src/app/models/fs-folder';
@@ -25,7 +25,7 @@ import { FSFolder } from 'src/app/models/fs-folder';
   templateUrl: './tree-view.component.html',
   styleUrls: ['./tree-view.component.scss'],
 })
-export class TreeViewComponent implements OnInit {
+export class TreeViewComponent {
   readonly THIS_PC = THIS_PC;
   readonly LIBRARIES = LIBRARIES;
   readonly RECYCLE_BIN = RECYCLE_BIN;
@@ -63,8 +63,6 @@ export class TreeViewComponent implements OnInit {
       });
     });
   }
-
-  ngOnInit(): void {}
 
   toggleGroup(e: Event, name: string) {
     e.stopPropagation();

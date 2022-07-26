@@ -1,11 +1,15 @@
-<ng-container>
-  <div *ngIf="hasGroups" class="groups">
+<div class="elements-list" (click)="clickOutside($event)">
+  <div class="groups">
     <div
       class="group"
       *ngFor="let group of items"
       [ngClass]="{ 'group--expanded': groupsOpened[group.name] === true }"
     >
-      <header class="group__header" (click)="toggleGroup($event, group.name)">
+      <header
+        *ngIf="hasGroups"
+        class="group__header"
+        (click)="toggleGroup($event, group.name)"
+      >
         <div class="group__chevron-wrapper">
           <span class="group__chevron"></span>
         </div>
@@ -17,10 +21,16 @@
       <div class="group__body">
         <div class="layout-list">
           <ul>
-            <li class="item" *ngFor="let item of group.children">
+            <li
+              *ngFor="let item of group.children"
+              class="item"
+              [ngClass]="{
+                'item--selected': selectedNodes[item.node.name]
+              }"
+            >
               <button
                 class="item"
-                (click)="selectItem(item)"
+                (click)="selectItem($event, item)"
                 (dblclick)="openFolder(item)"
               >
                 <app-icon class="item__icon" [code]="item.node.icon"></app-icon>
@@ -33,19 +43,5 @@
     </div>
   </div>
 
-  <div *ngIf="!hasGroups" class="layout-list">
-    <ul>
-      <li class="item" *ngFor="let item of items[0].children">
-        <button
-          class="item"
-          (click)="selectItem(item)"
-          (dblclick)="openFolder(item)"
-        >
-          <app-icon class="item__icon" [code]="item.node.icon"></app-icon>
-          {{ item.node.name }}
-        </button>
-      </li>
-    </ul>
-  </div>
   <p *ngIf="!items[0].children.length" class="empty">This folder is empty.</p>
-</ng-container>
+</div>

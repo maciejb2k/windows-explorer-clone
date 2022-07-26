@@ -3,7 +3,7 @@ import {
   VIEW_THIS_PC,
   VIEW_QUICK_ACCESS,
   INIT_LOCATION,
-} from './../common/views-constants';
+} from '../common/constants';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { FSDevice } from '../models/fs-device';
@@ -11,11 +11,7 @@ import { FSFile } from '../models/fs-file';
 import { FSFileBuilder } from '../models/fs-file-builder';
 import { FSFolder } from '../models/fs-folder';
 import { FSFolderBuilder } from '../models/fs-folder-builder';
-import {
-  THIS_PC,
-  LIBRARIES,
-  RECYCLE_BIN,
-} from 'src/app/common/views-constants';
+import { THIS_PC, LIBRARIES } from 'src/app/common/constants';
 import { initDevices, initFS } from '../models/fs-init';
 import {
   FSDevices,
@@ -28,7 +24,7 @@ import {
 } from '../models/types';
 import { ExplorerHistory } from '../models/history';
 
-import { USER_HOME, SYSTEM_FOLDERS } from 'src/app/common/views-constants';
+import { USER_HOME, SYSTEM_FOLDERS } from 'src/app/common/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -40,12 +36,14 @@ export class FileSystemService {
   private pathUrl$: BehaviorSubject<{ label: string; path: string }[]>;
   private displayLocation$: BehaviorSubject<string>;
   private currentFolder$!: BehaviorSubject<FSDevice | FSFolder | undefined>;
+  private currentItemsView$: BehaviorSubject<FSItemsView>;
+
   private history$: BehaviorSubject<ExplorerHistory>;
-  private selectedItems$: BehaviorSubject<FSItems[]>;
+  private selectedItems$: BehaviorSubject<FSObjects[]>;
+  private itemsCount$: BehaviorSubject<number>;
 
   private quickAccessRefs$: BehaviorSubject<FSItemsView>;
   private thisPcRefs$: BehaviorSubject<FSItemsView>;
-  private librariesRefs$: BehaviorSubject<FSItemsView>;
 
   public sysObjectsRefs: { [key: string]: FSParentObjects } = {};
   private osDevice!: FSDevice; // os disk always present;
@@ -59,20 +57,21 @@ export class FileSystemService {
     this.currentFolder$ = new BehaviorSubject<FSDevice | FSFolder | undefined>(
       undefined
     );
+    this.currentItemsView$ = new BehaviorSubject<FSItemsView>([]);
+    this.itemsCount$ = new BehaviorSubject<number>(0);
 
     this.history$ = new BehaviorSubject<ExplorerHistory>(new ExplorerHistory());
 
     this.quickAccessRefs$ = new BehaviorSubject<FSItemsView>([]);
     this.thisPcRefs$ = new BehaviorSubject<FSItemsView>([]);
-    this.librariesRefs$ = new BehaviorSubject<FSItemsView>([]);
 
-    this.selectedItems$ = new BehaviorSubject<FSItems[]>([]);
-
-    // Setup init location
-    this.setNewPath(INIT_LOCATION);
+    this.selectedItems$ = new BehaviorSubject<FSObjects[]>([]);
 
     // Init file system structure on OS device
     this.initFileSystem();
+
+    // Setup init location
+    this.setNewPath(INIT_LOCATION);
 
     // Init special windows views (this pc, quick access) which aren't folders
     this.setupViews();
@@ -164,6 +163,12 @@ export class FileSystemService {
     });
   }
 
+  // TODO! - Refactor DRY, aby w subjectice trzymać FSFolderView
+  setupViews() {
+    this.setupThisPcView();
+    this.setupQuickAccessView();
+  }
+
   setupThisPcView() {
     const setupView: FSItemsView = [
       {
@@ -206,14 +211,6 @@ export class FileSystemService {
     });
 
     this.quickAccessRefs$.next(setupView);
-  }
-
-  setupLibrariesView() {}
-
-  // TODO! - Refactor DRY, aby w subjectice trzymać FSFolderView
-  setupViews() {
-    this.setupThisPcView();
-    this.setupQuickAccessView();
   }
 
   // Returns nodes from current folder
@@ -600,6 +597,10 @@ export class FileSystemService {
     return this.selectedItems$.value;
   }
 
+  setSelectedItems(newItems: FSObjects[]) {
+    return this.selectedItems$.next(newItems);
+  }
+
   getDevice(letter: string) {
     return this.fs$.value[letter];
   }
@@ -634,5 +635,25 @@ export class FileSystemService {
 
   getQuickAccessRefs() {
     return this.quickAccessRefs$.value;
+  }
+
+  getCurrentItemsView() {
+    return this.currentItemsView$.value;
+  }
+
+  getCurrentItemsViewObs() {
+    return this.currentItemsView$.asObservable();
+  }
+
+  getItemsCountObs() {
+    return this.itemsCount$.asObservable();
+  }
+
+  getItemsCount() {
+    return this.itemsCount$.value;
+  }
+
+  setItemsCount(count: number) {
+    this.itemsCount$.next(count);
   }
 }
