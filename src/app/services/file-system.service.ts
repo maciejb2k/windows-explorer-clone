@@ -2,6 +2,7 @@ import {
   QUICK_ACCESS,
   VIEW_THIS_PC,
   VIEW_QUICK_ACCESS,
+  INIT_LOCATION,
 } from './../common/views-constants';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
@@ -34,8 +35,7 @@ import { USER_HOME, SYSTEM_FOLDERS } from 'src/app/common/views-constants';
 })
 export class FileSystemService {
   private fs$: BehaviorSubject<FSDevices>;
-  private devices$: BehaviorSubject<{ [key: string]: FSDevice }>;
-  private osDevice$!: BehaviorSubject<FSDevice>; // os disk always present;
+
   private path$: BehaviorSubject<string>;
   private pathUrl$: BehaviorSubject<{ label: string; path: string }[]>;
   private displayLocation$: BehaviorSubject<string>;
@@ -46,46 +46,30 @@ export class FileSystemService {
   private quickAccessRefs$: BehaviorSubject<FSItemsView>;
   private thisPcRefs$: BehaviorSubject<FSItemsView>;
   private librariesRefs$: BehaviorSubject<FSItemsView>;
+
   public sysObjectsRefs: { [key: string]: FSParentObjects } = {};
+  private osDevice!: FSDevice; // os disk always present;
 
   constructor() {
     this.fs$ = new BehaviorSubject(initDevices);
-    this.path$ = new BehaviorSubject<string>('C:\\');
+
+    this.path$ = new BehaviorSubject<string>('');
     this.pathUrl$ = new BehaviorSubject<{ label: string; path: string }[]>([]);
+    this.displayLocation$ = new BehaviorSubject<string>('');
+    this.currentFolder$ = new BehaviorSubject<FSDevice | FSFolder | undefined>(
+      undefined
+    );
+
     this.history$ = new BehaviorSubject<ExplorerHistory>(new ExplorerHistory());
-    this.selectedItems$ = new BehaviorSubject<FSItems[]>([]);
-    this.displayLocation$ = new BehaviorSubject<string>(this.path$.value);
-    this.devices$ = new BehaviorSubject<{ [key: string]: FSDevice }>({});
+
     this.quickAccessRefs$ = new BehaviorSubject<FSItemsView>([]);
     this.thisPcRefs$ = new BehaviorSubject<FSItemsView>([]);
     this.librariesRefs$ = new BehaviorSubject<FSItemsView>([]);
 
-    this.setHistory(this.path$.value);
-    this.buildInteractivePath();
+    this.selectedItems$ = new BehaviorSubject<FSItems[]>([]);
 
-    // TODO! - REFACTOR, ZEBY INIT WARTOSCIA W PATH BYL JAKIS VIEW A NIE FOLDER
-    // Wgl refactor tego bo to do pizdy jest tak ze hit
-    // Set current folder from current path
-    // Always present if path is valid folder/disk, not special view
-    // from constant
-    const currentNode = this.getNodeFromPath(this.path$.value);
-    if (currentNode instanceof FSDevice || currentNode instanceof FSFolder) {
-      this.currentFolder$ = new BehaviorSubject<
-        FSDevice | FSFolder | undefined
-      >(currentNode);
-    }
-
-    // Choose OS device
-    Object.keys(initDevices).forEach((key) => {
-      this.devices$.next({
-        ...this.devices$.value,
-        [initDevices[key].device.letter]: initDevices[key],
-      });
-
-      if (initDevices[key].device.isOs) {
-        this.osDevice$ = new BehaviorSubject(initDevices[key]);
-      }
-    });
+    // Setup init location
+    this.setNewPath(INIT_LOCATION);
 
     // Init file system structure on OS device
     this.initFileSystem();
@@ -94,58 +78,35 @@ export class FileSystemService {
     this.setupViews();
   }
 
-  // Ta funkcja jest spierdolona i nie działa,
+  // Ta funkcja jest spierdolona u podstaw XD,
   // bo obiekty są referencyjne i chuj że zmienie coś w nim, jak i tak
   // emituje te same wartości do subskrybentów po zmianie
   // A podobno za używanie `.value` na BehaviorSubject'ach jest wpierdol.
   initFileSystem() {
     const fs = this.getFs();
-    const devices = this.getDevices();
 
     // Iterate over init devices and setup file structure
-    Object.keys(devices).forEach((letter) => {
-      this.buildFSFromJson(initFS[letter], devices[letter]);
+    Object.keys(fs).forEach((letter) => {
+      // Init FS for current device
+      this.buildFSFromJson(initFS[letter], fs[letter]);
+
+      // Print fs structure
+      console.log(
+        "%cFile system mounted on '" + letter + "' device:",
+        'font-weight: bold; font-size: 14px;'
+      );
+      console.log(fs[letter]);
+      this.print(fs[letter].folder.children, 0);
+
+      // Choose OS device
+      if (initDevices[letter].device.isOs) {
+        this.osDevice = initDevices[letter];
+      }
     });
 
     // Emit the same values to subscribers, nothing changed, because
     // objects are referenced and not copied
     this.fs$.next(fs);
-  }
-
-  setupViews() {
-    this.setupThisPcView();
-    this.setupQuickAccessView();
-  }
-
-  // Returns nodes from current folder
-  listNodesFromPath() {
-    // Pobieramy aktualny folder z ścieżki
-    const node = this.getNodeFromPath(this.path$.value);
-
-    const setupNodes: FSItemsView = [
-      {
-        name: 'Files',
-        children: [],
-      },
-    ];
-
-    // Jeżeli node nie jest typu folder lub device to zwróć
-    if (!(node instanceof FSDevice) && !(node instanceof FSFolder)) {
-      return setupNodes;
-    }
-
-    // If folder is empty
-    if (node.folder.children.length === 0) {
-      return setupNodes;
-    }
-
-    // Uwaga bo to jest referencja do obiektu, nie kopia
-    // na oryginalnym FS to sortuje, nie na wycinku, ktory chcialem sobie pobrac
-    node.folder.children.sort((a, b) => a.node.name.localeCompare(b.node.name));
-
-    setupNodes[0].children = node.folder.children;
-
-    return setupNodes;
   }
 
   // TODO - REFACTOR THIS GÓWNO PIERDOLONE XDDDDDDDDDDDDDD
@@ -221,7 +182,7 @@ export class FileSystemService {
       }
     });
 
-    const devices = this.devices$.value;
+    const devices = this.getFs();
 
     Object.keys(devices).forEach((key) => {
       setupView[1].children.push(devices[key]);
@@ -249,8 +210,47 @@ export class FileSystemService {
 
   setupLibrariesView() {}
 
+  // TODO! - Refactor DRY, aby w subjectice trzymać FSFolderView
+  setupViews() {
+    this.setupThisPcView();
+    this.setupQuickAccessView();
+  }
+
+  // Returns nodes from current folder
+  listNodesFromPath() {
+    // Pobieramy aktualny folder z ścieżki
+    const node = this.getNodeFromPath(this.getPath());
+
+    // W takim formacie przekazane są wszystkie dzieci folderu
+    const setupNodes: FSItemsView = [
+      {
+        name: 'Files',
+        children: [],
+      },
+    ];
+
+    // Jeżeli node nie jest typu folder lub device to zwróć
+    if (!(node instanceof FSDevice) && !(node instanceof FSFolder)) {
+      return setupNodes;
+    }
+
+    // If folder is empty
+    if (node.folder.children.length === 0) {
+      return setupNodes;
+    }
+
+    // Uwaga bo to jest referencja do obiektu, nie kopia
+    // na oryginalnym FS to sortuje, nie na wycinku, ktory chcialem sobie pobrac
+    node.folder.children.sort((a, b) => a.node.name.localeCompare(b.node.name));
+
+    // Przypisz dzieci do setupNodes.children
+    setupNodes[0].children = node.folder.children;
+
+    return setupNodes;
+  }
+
   // Returns path from given node
-  getPath(node: FSObjects) {
+  getPathFromNode(node: FSObjects) {
     let path: string[] = [];
     let currentNode = node;
 
@@ -270,7 +270,10 @@ export class FileSystemService {
 
     // Add trailing slash to end of path
     let pathStr = path.join('\\');
-    pathStr += pathStr.endsWith('\\') ? '' : '\\';
+
+    if (!(node instanceof FSFile)) {
+      pathStr += '\\';
+    }
 
     // return string
     return pathStr;
@@ -373,11 +376,10 @@ export class FileSystemService {
     current.forEach((item) => {
       let str = '';
       for (let i = 0; i < level; i++) {
-        str += '\t';
+        str += '  ';
       }
 
-      console.log(this.getPath(item));
-      console.log(item);
+      console.log(`%c${str}${this.getPathFromNode(item)}`, 'font-size: 10px;');
 
       if (item instanceof FSFolder && item.folder.children.length) {
         this.print(item.folder.children, ++offset);
@@ -390,8 +392,8 @@ export class FileSystemService {
     const currentFolder = this.currentFolder$.value;
 
     if (currentFolder && currentFolder.node.parent) {
-      console.log(this.getPath(currentFolder.node.parent));
-      this.setNewPath(this.getPath(currentFolder.node.parent));
+      console.log(this.getPathFromNode(currentFolder.node.parent));
+      this.setNewPath(this.getPathFromNode(currentFolder.node.parent));
       return;
     }
 
@@ -400,7 +402,7 @@ export class FileSystemService {
 
   // TODO - Refactor
   moveBack() {
-    const history = this.history$.value;
+    const history = this.getHistory();
     history.setPrevious();
     const current = history.getCurrent();
 
@@ -412,13 +414,13 @@ export class FileSystemService {
   }
 
   canMoveBack() {
-    const history = this.history$.value;
+    const history = this.getHistory();
     return history.hasPrevious();
   }
 
   // TODO - Refactor
   moveForward() {
-    const history = this.history$.value;
+    const history = this.getHistory();
     history.setNext();
     const current = history.getCurrent();
 
@@ -430,8 +432,14 @@ export class FileSystemService {
   }
 
   canMoveForward() {
-    const history = this.history$.value;
+    const history = this.getHistory();
     return history.hasNext();
+  }
+
+  setHistory(value: string) {
+    const history = this.getHistory();
+    history.push(value);
+    this.history$.next(history);
   }
 
   compareItemNames(name1: string, name2: string) {
@@ -439,39 +447,28 @@ export class FileSystemService {
   }
 
   openSystemObject(item: string) {
-    const path = this.getPath(this.sysObjectsRefs[item]);
-    this.setNewPath(path);
-  }
-
-  openDevice(letter: string) {
-    const device = this.getDevice(letter);
-
-    if (!device) {
-      return;
-    }
-
-    const path = this.getPath(device);
+    const path = this.getPathFromNode(this.sysObjectsRefs[item]);
     this.setNewPath(path);
   }
 
   setNewPath(newPath: string) {
-    if (this.path$.value === newPath) {
+    if (this.getPath() === newPath) {
       return;
     }
 
     this.setPath(newPath);
-    this.setHistory(newPath);
     this.setCurrentFolder();
+    this.buildInteractivePath();
+    this.setHistory(newPath);
     this.setDisplayLocation();
   }
 
   setPath(path: string) {
     this.path$.next(path);
-    this.buildInteractivePath();
   }
 
   buildInteractivePath() {
-    const path = this.path$.value;
+    const path = this.getPath();
     const newPath = [];
 
     // Check whether path is prepared view, not dynamic
@@ -524,9 +521,7 @@ export class FileSystemService {
     this.pathUrl$.next(newPath);
   }
 
-  formatTitlePath() {}
-
-  getNameFromViewPath(path: string) {
+  getNameFromViewPath(path: string): string {
     if (path === THIS_PC) {
       return 'This PC';
     } else if (path === QUICK_ACCESS) {
@@ -538,8 +533,9 @@ export class FileSystemService {
     return '';
   }
 
+  // undefined when path is view eg. `$ThisPc`, `$QuickAccess`
   setCurrentFolder() {
-    const currentNode = this.getNodeFromPath(this.path$.value);
+    const currentNode = this.getNodeFromPath(this.getPath());
 
     if (currentNode instanceof FSDevice || currentNode instanceof FSFolder) {
       this.currentFolder$.next(currentNode);
@@ -549,7 +545,7 @@ export class FileSystemService {
   }
 
   setDisplayLocation() {
-    const path = this.path$.value;
+    const path = this.getPath();
 
     if (path.startsWith('$')) {
       const name = this.getNameFromViewPath(path);
@@ -560,12 +556,6 @@ export class FileSystemService {
     this.displayLocation$.next(path);
   }
 
-  setHistory(value: string) {
-    const history = this.history$.value;
-    history.push(value);
-    this.history$.next(history);
-  }
-
   getFsObs() {
     return this.fs$.asObservable();
   }
@@ -574,12 +564,12 @@ export class FileSystemService {
     return this.fs$.value;
   }
 
-  getCurrentDeviceObs() {
-    return this.osDevice$.asObservable();
+  getCurrentDevice() {
+    return this.osDevice;
   }
 
-  getCurrentDevice() {
-    return this.osDevice$.value;
+  getPath() {
+    return this.path$.value;
   }
 
   getPathObs() {
@@ -611,15 +601,7 @@ export class FileSystemService {
   }
 
   getDevice(letter: string) {
-    return this.devices$.value[letter];
-  }
-
-  getDevices() {
-    return this.devices$.value;
-  }
-
-  getDevicesObs() {
-    return this.devices$;
+    return this.fs$.value[letter];
   }
 
   getPathUrlObs() {

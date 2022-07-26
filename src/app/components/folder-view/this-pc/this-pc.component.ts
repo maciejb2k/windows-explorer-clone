@@ -13,7 +13,6 @@ export class ThisPCComponent implements OnInit {
   constructor(private fileSystemService: FileSystemService) {
     this.fileSystemService.getThisPcRefsObs().subscribe((value) => {
       this.items = value;
-      console.log(value);
     });
   }
 

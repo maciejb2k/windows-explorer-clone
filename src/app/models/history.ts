@@ -1,6 +1,5 @@
 import { Stack } from './stack';
 
-// TODO! - Refactor bo chuj wie czy to działa wgl X X X D
 class ExplorerHistory extends Stack<string> {
   current: number = 0;
 

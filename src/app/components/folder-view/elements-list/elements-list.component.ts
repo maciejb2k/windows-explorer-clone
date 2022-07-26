@@ -26,7 +26,7 @@ export class ElementsListComponent implements OnInit, OnChanges {
   openFolder(node: any) {
     if (node instanceof FSFolder || node instanceof FSDevice) {
       // Get path of node
-      const nodePath = this.fileSystemService.getPath(node);
+      const nodePath = this.fileSystemService.getPathFromNode(node);
 
       // Set new path based on path string
       this.fileSystemService.setNewPath(nodePath);

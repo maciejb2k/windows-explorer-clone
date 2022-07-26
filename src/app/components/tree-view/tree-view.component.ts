@@ -55,14 +55,12 @@ export class TreeViewComponent implements OnInit {
       value.forEach((group) => {
         this.quickAccessTree.push(...group.children);
       });
-      console.log(this.quickAccessTree);
     });
 
     this.fileSystemService.getThisPcRefsObs().subscribe((value) => {
       value.forEach((group) => {
         this.thisPcTree.push(...group.children);
       });
-      console.log(this.thisPcTree);
     });
   }
 
@@ -76,7 +74,7 @@ export class TreeViewComponent implements OnInit {
   openFolder(node: FSObjects) {
     if (node instanceof FSFolder || node instanceof FSDevice) {
       // Get path of node
-      const nodePath = this.fileSystemService.getPath(node);
+      const nodePath = this.fileSystemService.getPathFromNode(node);
 
       // Set new path based on path string
       this.fileSystemService.setNewPath(nodePath);
@@ -90,9 +88,5 @@ export class TreeViewComponent implements OnInit {
 
   openView(path: string) {
     this.fileSystemService.setNewPath(path);
-  }
-
-  openDevice(letter: string) {
-    this.fileSystemService.openDevice(letter);
   }
 }
