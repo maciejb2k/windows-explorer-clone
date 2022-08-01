@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FileSystemService } from 'src/app/services/file-system.service';
 
 @Component({
@@ -6,18 +7,23 @@ import { FileSystemService } from 'src/app/services/file-system.service';
   templateUrl: './address-bar.component.html',
   styleUrls: ['./address-bar.component.scss'],
 })
-export class AddressBarComponent implements OnInit {
+export class AddressBarComponent implements OnDestroy {
   pathUrl!: { label: string; path: string }[];
+  pathSubscription: Subscription;
 
   constructor(private fileSystemService: FileSystemService) {
-    this.fileSystemService.getPathUrlObs().subscribe((pathUrl) => {
-      this.pathUrl = pathUrl;
-    });
+    this.pathSubscription = this.fileSystemService
+      .getPathUrlObs()
+      .subscribe((pathUrl) => {
+        this.pathUrl = pathUrl;
+      });
   }
 
   openFolder(path: string) {
     this.fileSystemService.setNewPath(path);
   }
 
-  ngOnInit(): void {}
+  ngOnDestroy(): void {
+    this.pathSubscription.unsubscribe();
+  }
 }

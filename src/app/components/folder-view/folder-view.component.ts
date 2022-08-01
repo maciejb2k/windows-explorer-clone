@@ -33,6 +33,10 @@ export class FolderViewComponent implements OnDestroy {
       .subscribe((path) => {
         this.path = path;
       });
+
+    this.fileSystemService.getHistoryObs().subscribe((value) => {
+      console.log(value);
+    });
   }
 
   ngOnDestroy() {

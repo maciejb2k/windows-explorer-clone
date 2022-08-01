@@ -3,9 +3,11 @@ import {
   VIEW_THIS_PC,
   VIEW_QUICK_ACCESS,
   INIT_LOCATION,
+  NEW_FOLDER_DEFAULT_NAME,
 } from '../common/constants';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { startWith, pairwise, map } from 'rxjs/operators';
 import { FSDevice } from '../models/fs-device';
 import { FSFile } from '../models/fs-file';
 import { FSFileBuilder } from '../models/fs-file-builder';
@@ -35,12 +37,13 @@ export class FileSystemService {
   private path$: BehaviorSubject<string>;
   private pathUrl$: BehaviorSubject<{ label: string; path: string }[]>;
   private displayLocation$: BehaviorSubject<string>;
-  private currentFolder$!: BehaviorSubject<FSDevice | FSFolder | undefined>;
+  private currentFolder$!: BehaviorSubject<FSParentObjects | undefined>;
   private currentItemsView$: BehaviorSubject<FSItemsView>;
 
   private history$: BehaviorSubject<ExplorerHistory>;
   private selectedItems$: BehaviorSubject<FSObjects[]>;
   private itemsCount$: BehaviorSubject<number>;
+  private newItems$: BehaviorSubject<FSItems | undefined>;
 
   private quickAccessRefs$: BehaviorSubject<FSItemsView>;
   private thisPcRefs$: BehaviorSubject<FSItemsView>;
@@ -54,11 +57,12 @@ export class FileSystemService {
     this.path$ = new BehaviorSubject<string>('');
     this.pathUrl$ = new BehaviorSubject<{ label: string; path: string }[]>([]);
     this.displayLocation$ = new BehaviorSubject<string>('');
-    this.currentFolder$ = new BehaviorSubject<FSDevice | FSFolder | undefined>(
+    this.currentFolder$ = new BehaviorSubject<FSParentObjects | undefined>(
       undefined
     );
     this.currentItemsView$ = new BehaviorSubject<FSItemsView>([]);
     this.itemsCount$ = new BehaviorSubject<number>(0);
+    this.newItems$ = new BehaviorSubject<FSItems | undefined>(undefined);
 
     this.history$ = new BehaviorSubject<ExplorerHistory>(new ExplorerHistory());
 
@@ -94,7 +98,7 @@ export class FileSystemService {
         "%cFile system mounted on '" + letter + "' device:",
         'font-weight: bold; font-size: 14px;'
       );
-      console.log(fs[letter]);
+      console.dir(fs[letter]);
       this.print(fs[letter].folder.children, 0);
 
       // Choose OS device
@@ -213,6 +217,161 @@ export class FileSystemService {
     this.quickAccessRefs$.next(setupView);
   }
 
+  createFolder() {
+    const currentFolder = this.getCurrentFolder();
+
+    if (!currentFolder) {
+      // Cannot create item outside filesystem
+      return false;
+    }
+
+    const regex = new RegExp(`${NEW_FOLDER_DEFAULT_NAME}.*`);
+
+    // Set new name
+    const newFolders: FSFolder[] = currentFolder.folder.children.filter(
+      (item) => item instanceof FSFolder && item.node.name.match(regex)
+    ) as FSFolder[];
+
+    const name = newFolders.length
+      ? `${NEW_FOLDER_DEFAULT_NAME} (${newFolders.length})`
+      : NEW_FOLDER_DEFAULT_NAME;
+
+    const newFolder = new FSFolderBuilder(name, currentFolder)
+      .setIcon(14)
+      .build();
+
+    this.addToFileSystem(newFolder, currentFolder);
+
+    return newFolder;
+  }
+
+  deleteItems() {
+    const currentFolder = this.getCurrentFolder();
+    const selected = this.getSelectedItems();
+
+    if (!selected.length) {
+      return false;
+    }
+
+    if (!currentFolder) {
+      // Cannot delete item outside filesystem
+      return false;
+    }
+
+    const deletedNodes: FSItems[] = [];
+
+    selected.forEach((node) => {
+      // Cannot delete system files
+      if (node instanceof FSFolder && node.folder.isSystem) {
+        return;
+      }
+
+      // Find index of node in current folder
+      const index = this.getNodeIndex(node, currentFolder);
+
+      // Cannot delete item which doesn't exist
+      if (index === -1) return;
+
+      // Remove node from filesystem
+      this.deleteFromFileSystem(index, currentFolder);
+
+      // Cannot delete device, but TS needs this check ...
+      if (node instanceof FSFolder || node instanceof FSFile) {
+        deletedNodes.push(node);
+      }
+    });
+
+    return deletedNodes;
+  }
+
+  createItem(name: string) {}
+
+  getNodeIndex(node: FSObjects, target: FSParentObjects) {
+    for (let i = 0; i < target.folder.children.length; i++) {
+      if (Object.is(node, target.folder.children[i])) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  doesFolderExists(name: string, target: FSParentObjects) {
+    // Check if there is folder with the same name in target folder
+    for (const item of target.folder.children) {
+      if (this.compareItemNames(name, item.node.name)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  doesFileExists(name: string, target: FSParentObjects) {
+    // Check if there is file with the same name in target folder
+    for (const item of target.folder.children) {
+      if (
+        item instanceof FSFile &&
+        this.compareItemNames(name, `${item.node.name}.${item.file.extension}`)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  addToFileSystem(item: FSItems, target: FSParentObjects) {
+    target.folder.children.push(item);
+    this.newItems$.next(item);
+    this.sortFolder(target);
+    this.fs$.next(this.getFs()); // XD
+  }
+
+  deleteFromFileSystem(index: number, target: FSParentObjects) {
+    target.folder.children.splice(index, 1);
+    this.sortFolder(target);
+    this.fs$.next(this.getFs()); // XD
+  }
+
+  sortFolder(target: FSParentObjects) {
+    target.folder.children.sort((a, b) =>
+      a.node.name.localeCompare(b.node.name)
+    );
+  }
+
+  addItemToRename() {
+    const selected = this.getSelectedItems();
+
+    if (!selected.length) return;
+
+    const item = selected[0];
+
+    if (item instanceof FSFolder && !item.folder.isSystem) {
+      this.newItems$.next(item);
+    }
+  }
+
+  renameItem(item: FSObjects, newName: string) {
+    const currentFolder = this.getCurrentFolder();
+
+    if (!currentFolder) {
+      // Cannot rename item outside filesystem
+      return false;
+    }
+
+    const index = this.getNodeIndex(item, currentFolder);
+
+    // Cannot rename item which doesn't exist
+    if (index === -1) return;
+
+    // Rename item
+    item.node.name = newName;
+
+    this.sortFolder(currentFolder);
+    this.fs$.next(this.getFs()); // XD
+  }
+
   // Returns nodes from current folder
   listNodesFromPath() {
     // Pobieramy aktualny folder z ścieżki
@@ -238,7 +397,7 @@ export class FileSystemService {
 
     // Uwaga bo to jest referencja do obiektu, nie kopia
     // na oryginalnym FS to sortuje, nie na wycinku, ktory chcialem sobie pobrac
-    node.folder.children.sort((a, b) => a.node.name.localeCompare(b.node.name));
+    this.sortFolder(node);
 
     // Przypisz dzieci do setupNodes.children
     setupNodes[0].children = node.folder.children;
@@ -384,6 +543,14 @@ export class FileSystemService {
     });
   }
 
+  isPathToView(path: string) {
+    return path.startsWith('$');
+  }
+
+  doesNodeExist(path: string): boolean {
+    return !this.isPathToView(path) && Boolean(this.getNodeFromPath(path));
+  }
+
   // Sets path to parent folder if present
   moveUp() {
     const currentFolder = this.currentFolder$.value;
@@ -397,40 +564,56 @@ export class FileSystemService {
     this.setNewPath(THIS_PC);
   }
 
+  // TODO! - Refactor moveBack and moveForward when folder deleted
+
   // TODO - Refactor
   moveBack() {
     const history = this.getHistory();
-    history.setPrevious();
-    const current = history.getCurrent();
+    const prev = history.peekPrevious();
 
-    if (current) {
-      this.setPath(current);
-      this.history$.next(history);
+    if (prev) {
+      // Case when element has been deleted
+      if (!this.doesNodeExist(prev)) {
+        return;
+      }
+
+      history.setPrevious();
+
+      this.setPath(prev);
       this.setCurrentFolder();
+      this.buildInteractivePath();
+      this.history$.next(history);
+      this.setDisplayLocation();
     }
   }
 
   canMoveBack() {
-    const history = this.getHistory();
-    return history.hasPrevious();
+    return this.getHistory().hasPrevious();
   }
 
   // TODO - Refactor
   moveForward() {
     const history = this.getHistory();
-    history.setNext();
-    const current = history.getCurrent();
+    const next = history.peekNext();
 
-    if (current) {
-      this.setPath(current);
-      this.history$.next(history);
+    if (next) {
+      // Case when element has been deleted
+      if (!this.doesNodeExist(next)) {
+        return;
+      }
+
+      history.setNext();
+
+      this.setPath(next);
       this.setCurrentFolder();
+      this.buildInteractivePath();
+      this.history$.next(history);
+      this.setDisplayLocation();
     }
   }
 
   canMoveForward() {
-    const history = this.getHistory();
-    return history.hasNext();
+    return this.getHistory().hasNext();
   }
 
   setHistory(value: string) {
@@ -655,5 +838,17 @@ export class FileSystemService {
 
   setItemsCount(count: number) {
     this.itemsCount$.next(count);
+  }
+
+  getNewItemsObs() {
+    return this.newItems$.asObservable();
+  }
+
+  getNewItems() {
+    return this.newItems$.value;
+  }
+
+  clearNewItems() {
+    this.newItems$.next(undefined);
   }
 }

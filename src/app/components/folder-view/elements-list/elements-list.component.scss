@@ -103,6 +103,11 @@
     .item__icon {
       margin-right: 5px;
     }
+
+    .item__name {
+      display: flex;
+      white-space: pre;
+    }
   }
 
   .item--selected {

@@ -34,7 +34,16 @@
                 (dblclick)="openFolder(item)"
               >
                 <app-icon class="item__icon" [code]="item.node.icon"></app-icon>
-                {{ item.node.name }}
+                <span
+                  #itemName
+                  class="item__name"
+                  [contentEditable]="
+                    !!newItems && newItems.node.name === item.node.name
+                  "
+                  (blur)="renameItem($event, item, itemName)"
+                  (keyup.enter)="blurItem($event)"
+                  >{{ item.node.name }}</span
+                >
               </button>
             </li>
           </ul>

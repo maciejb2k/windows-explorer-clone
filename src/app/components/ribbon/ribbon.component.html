@@ -7,16 +7,18 @@
   >
     <div class="ribbon__tabs">
       <button class="ribbon__tab ribbon__tab--file">File</button>
-      <button
-        *ngFor="let tab of tabs"
-        (click)="selectTab(tab.name)"
-        class="ribbon__tab"
-        [ngClass]="{
-          'ribbon__tab--active': activeTab == tab.name && isRibbonOpened
-        }"
-      >
-        {{ tab.label }}
-      </button>
+      <ng-container *ngFor="let tab of tabs">
+        <button
+          *ngIf="!tab.hidden"
+          (click)="selectTab(tab)"
+          class="ribbon__tab"
+          [ngClass]="{
+            'ribbon__tab--active': activeTab.name === tab.name && isRibbonOpened
+          }"
+        >
+          {{ tab.label }}
+        </button>
+      </ng-container>
     </div>
     <div class="ribbon__header-group">
       <app-button-icon
@@ -30,10 +32,14 @@
   </header>
 
   <div [hidden]="!isRibbonOpened" class="ribbon__content">
-    <app-ribbon-tab-tools *ngIf="activeTab === 'tools'"></app-ribbon-tab-tools>
+    <app-ribbon-tab-tools
+      *ngIf="activeTab.name === 'tools' && !activeTab.hidden"
+    ></app-ribbon-tab-tools>
     <app-ribbon-tab-sharing
-      *ngIf="activeTab === 'sharing'"
+      *ngIf="activeTab.name === 'sharing' && !activeTab.hidden"
     ></app-ribbon-tab-sharing>
-    <app-ribbon-tab-view *ngIf="activeTab === 'view'"></app-ribbon-tab-view>
+    <app-ribbon-tab-view
+      *ngIf="activeTab.name === 'view' && !activeTab.hidden"
+    ></app-ribbon-tab-view>
   </div>
 </div>

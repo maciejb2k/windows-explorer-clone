@@ -141,12 +141,25 @@
   }
 }
 
+.group-scroll--disabled {
+  opacity: 0.5;
+}
+
 .btn {
   border: 1px solid transparent;
 
   &:hover {
     background-color: #e8eff7;
     border: 1px solid #a4cef9;
+  }
+}
+
+.btn,
+.btn__inner,
+.group-scroll__item {
+  &[disabled] {
+    opacity: 0.6;
+    filter: grayscale(100%);
   }
 }
 

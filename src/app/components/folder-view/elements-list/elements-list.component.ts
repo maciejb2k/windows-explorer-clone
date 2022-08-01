@@ -1,5 +1,5 @@
 import { Subscription } from 'rxjs';
-import { FSItemsView, FSObjects } from './../../../models/types';
+import { FSItems, FSItemsView, FSObjects } from './../../../models/types';
 import { FSDevice } from 'src/app/models/fs-device';
 import { FileSystemService } from 'src/app/services/file-system.service';
 import {
@@ -9,6 +9,9 @@ import {
   OnInit,
   OnDestroy,
   AfterViewInit,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { FSFile } from 'src/app/models/fs-file';
 import { FSFolder } from 'src/app/models/fs-folder';
@@ -25,14 +28,36 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
   selected: FSObjects[] = [];
   selectedSubscription: Subscription;
 
+  newItems!: FSItems | undefined;
+  newItemsSubscription: Subscription;
+
+  isRenaming: boolean = false;
+
   groupsOpened: { [key: string]: boolean } = {};
   selectedNodes: { [key: string]: FSObjects } = {};
 
-  constructor(private fileSystemService: FileSystemService) {
+  constructor(
+    private fileSystemService: FileSystemService,
+    private elRef: ElementRef,
+    private cd: ChangeDetectorRef
+  ) {
     this.selectedSubscription = this.fileSystemService
       .getSelectedItemsObs()
       .subscribe((value) => {
         this.selected = value;
+      });
+
+    this.newItemsSubscription = this.fileSystemService
+      .getNewItemsObs()
+      .subscribe((newItems) => {
+        this.newItems = newItems;
+
+        // When put outside of ngOnChanges, it doesn't know about changes in fs
+        // New file hasn't been added yet to this.items
+        if (this.newItems) {
+          this.cd.detectChanges();
+          setTimeout(() => this.enableRenaming(), 0);
+        }
       });
   }
 
@@ -42,6 +67,10 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
   }
 
   openFolder(node: FSObjects) {
+    if (this.newItems && node.node.name === this.newItems.node.name) {
+      return;
+    }
+
     if (node instanceof FSFolder || node instanceof FSDevice) {
       // Get path of node
       const nodePath = this.fileSystemService.getPathFromNode(node);
@@ -54,6 +83,10 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
   selectItem(e: MouseEvent, node: FSObjects) {
     // If it wasn't single click, this function shouldn't be called
     if (e.detail !== 1) {
+      return;
+    }
+
+    if (this.newItems && node.node.name === this.newItems.node.name) {
       return;
     }
 
@@ -75,6 +108,56 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
       this.deselectAll();
       return;
     }
+  }
+
+  enableRenaming() {
+    // Find span element with name of new item
+    const renamingItem = [
+      ...this.elRef.nativeElement.querySelectorAll('.item__name'),
+    ].filter((item) => item.textContent === this.newItems!.node.name);
+
+    // Check if there is such element
+    if (!renamingItem.length) return;
+
+    // Focus span element
+    const refNode = renamingItem[0];
+    refNode.focus();
+
+    // Select all text inside span element
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(refNode);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }
+
+  blurItem(e: Event) {
+    e.preventDefault();
+
+    const target = e.target as HTMLSpanElement;
+    target.blur();
+  }
+
+  renameItem(e: Event, node: FSObjects, ref: HTMLSpanElement) {
+    e.preventDefault();
+
+    this.isRenaming = false;
+    const input = e.target as HTMLSpanElement;
+    const newName = input.textContent;
+
+    if (
+      !newName ||
+      ((node.node.parent instanceof FSFolder ||
+        node.node.parent instanceof FSDevice) &&
+        this.fileSystemService.doesFolderExists(newName, node.node.parent))
+    ) {
+      ref.textContent = node.node.name;
+      this.fileSystemService.clearNewItems();
+      return;
+    }
+
+    this.fileSystemService.clearNewItems();
+    this.fileSystemService.renameItem(node, newName);
   }
 
   deselectAll() {
@@ -111,6 +194,8 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.deselectAll();
     this.fileSystemService.setItemsCount(0);
+
     this.selectedSubscription.unsubscribe();
+    this.newItemsSubscription.unsubscribe();
   }
 }

@@ -36,4 +36,6 @@ export const VIEW_THIS_PC: string[] = [
 
 export const VIEW_QUICK_ACCESS: string[] = [DESKTOP, DOWNLOADS, USER_HOME];
 
-export const INIT_LOCATION = THIS_PC;
+export const INIT_LOCATION = 'C:\\';
+
+export const NEW_FOLDER_DEFAULT_NAME = 'New folder';

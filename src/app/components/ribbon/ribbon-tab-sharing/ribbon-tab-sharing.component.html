@@ -1,28 +1,28 @@
 <div class="ribbon">
   <div class="ribbon__group">
     <div class="ribbon__group-content">
-      <button class="btn btn-lg-vert">
+      <button class="btn btn-lg-vert" [disabled]="!settings.share">
         <app-icon class="btn-lg-vert__icon" [code]="1535"></app-icon>
         <p class="btn-lg-vert__label">Share</p>
       </button>
-      <button class="btn btn-lg-vert">
+      <button class="btn btn-lg-vert" [disabled]="!settings.email">
         <app-icon class="btn-lg-vert__icon" [code]="4225"></app-icon>
         <p class="btn-lg-vert__label">Email</p>
       </button>
-      <button class="btn btn-lg-vert">
+      <button class="btn btn-lg-vert" [disabled]="!settings.zip">
         <app-icon class="btn-lg-vert__icon" [code]="1353"></app-icon>
         <p class="btn-lg-vert__label">Zip</p>
       </button>
       <div class="ribbon__vertical-group">
-        <button class="btn btn-sm-hor">
+        <button class="btn btn-sm-hor" [disabled]="!settings.burnToDisc">
           <app-icon class="btn-sm-hor__icon" [code]="4170"></app-icon>
           <p class="btn-sm-hor__label">Burn to disc</p>
         </button>
-        <button class="btn btn-sm-hor">
+        <button class="btn btn-sm-hor" [disabled]="!settings.print">
           <app-icon class="btn-sm-hor__icon" [code]="416"></app-icon>
           <p class="btn-sm-hor__label">Print</p>
         </button>
-        <button class="btn btn-sm-hor">
+        <button class="btn btn-sm-hor" [disabled]="!settings.fax">
           <app-icon class="btn-sm-hor__icon" [code]="1129"></app-icon>
           <p class="btn-sm-hor__label">Fax</p>
         </button>
@@ -34,24 +34,42 @@
     <div class="ribbon__group-content">
       <div class="group-scroll group-scroll--share">
         <div class="group-scroll__list">
-          <button class="group-scroll__item">
+          <button
+            class="group-scroll__item"
+            *ngIf="settings.group; else emptyGroup"
+          >
             <app-icon class="group-scroll__item-icon" [code]="4260"></app-icon>
             <p class="group-scroll__item-text">Specific people...</p>
           </button>
+          <ng-template #emptyGroup>
+            <button class="group-scroll__item" [disabled]="!settings.group">
+              <app-icon
+                class="group-scroll__item-icon"
+                [code]="1599"
+              ></app-icon>
+              <p class="group-scroll__item-text">No shortcuts ...</p>
+            </button>
+          </ng-template>
         </div>
         <div class="group-scroll__buttons">
-          <button class="group-scroll__btn" disabled>
+          <button class="group-scroll__btn" [disabled]="!settings.group">
             <span class="triangle traingle--up"></span>
           </button>
-          <button class="group-scroll__btn" disabled>
+          <button class="group-scroll__btn" [disabled]="!settings.group">
             <span class="triangle"></span>
           </button>
-          <button class="group-scroll__btn group-scroll__btn--disabled">
+          <button
+            class="group-scroll__btn group-scroll__btn--disabled"
+            [disabled]="!settings.group"
+          >
             <app-icon [code]="10001"></app-icon>
           </button>
         </div>
       </div>
-      <button class="btn btn-lg-vert btn-lg-vert--short">
+      <button
+        class="btn btn-lg-vert btn-lg-vert--short"
+        [disabled]="!settings.removeAccess"
+      >
         <app-icon class="btn-lg-vert__icon" [code]="469"></app-icon>
         <p class="btn-lg-vert__label">Remove access</p>
       </button>
@@ -60,7 +78,10 @@
   </div>
   <div class="ribbon__group">
     <div class="ribbon__group-content">
-      <button class="btn btn-lg-vert btn-lg-vert--short">
+      <button
+        class="btn btn-lg-vert btn-lg-vert--short"
+        [disabled]="!settings.advancedSecurity"
+      >
         <app-icon class="btn-lg-vert__icon" [code]="4434"></app-icon>
         <p class="btn-lg-vert__label">Advanced security</p>
       </button>

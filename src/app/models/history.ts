@@ -20,8 +20,27 @@ class ExplorerHistory extends Stack<string> {
     return true;
   }
 
+  peekPrevious() {
+    if (this.hasPrevious()) {
+      return this.items[this.current - 1];
+    }
+  }
+
   hasPrevious() {
     return this.current > 0;
+  }
+
+  clearForwardHistory() {
+    if (this.current <= this.items.length - 1) {
+      // If we are not at the end of the stack, remove all items after the current one
+      this.items.splice(this.current + 1, this.items.length - this.current - 1);
+    }
+  }
+
+  peekNext() {
+    if (this.hasNext()) {
+      return this.items[this.current + 1];
+    }
   }
 
   hasNext() {
