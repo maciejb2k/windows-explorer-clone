@@ -44,6 +44,7 @@
                   (keyup.enter)="blurItem($event)"
                   >{{ item.node.name }}</span
                 >
+                <span *ngIf="isFileInstance(item)"></span>
               </button>
             </li>
           </ul>

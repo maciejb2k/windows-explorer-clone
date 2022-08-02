@@ -1,20 +1,24 @@
 import { FileSystemService } from 'src/app/services/file-system.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-search',
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
 })
-export class SearchComponent implements OnInit {
+export class SearchComponent implements OnDestroy {
   hasPrevious!: boolean;
   hasNext!: boolean;
+  historySubscription: Subscription;
 
   constructor(private fileSystemService: FileSystemService) {
-    this.fileSystemService.getHistoryObs().subscribe((value) => {
-      this.hasPrevious = value.hasPrevious();
-      this.hasNext = value.hasNext();
-    });
+    this.historySubscription = this.fileSystemService
+      .getHistoryObs()
+      .subscribe((value) => {
+        this.hasPrevious = value.hasPrevious();
+        this.hasNext = value.hasNext();
+      });
   }
 
   moveUp() {
@@ -29,5 +33,7 @@ export class SearchComponent implements OnInit {
     this.fileSystemService.moveForward();
   }
 
-  ngOnInit(): void {}
+  ngOnDestroy(): void {
+    this.historySubscription.unsubscribe();
+  }
 }

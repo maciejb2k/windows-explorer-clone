@@ -107,6 +107,14 @@
     .item__name {
       display: flex;
       white-space: pre;
+
+      &[contenteditable="true"] {
+        outline: 0;
+        padding: 3px;
+        height: 100%;
+        border: 1px solid black;
+        background: white;
+      }
     }
   }
 

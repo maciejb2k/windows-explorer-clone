@@ -95,7 +95,11 @@
         <p class="btn-lg-vert__label">New folder</p>
       </button>
       <div class="ribbon__vertical-group">
-        <button class="btn btn-sm-hor-dropdown" [disabled]="!settings.newItem">
+        <button
+          class="btn btn-sm-hor-dropdown"
+          [disabled]="!settings.newItem"
+          (click)="newFile()"
+        >
           <app-icon class="btn__icon btn-sm-hor__icon" [code]="1735"></app-icon>
           <p class="btn-sm-hor__label">
             New item <span class="triangle"></span>
@@ -160,15 +164,15 @@
   <div class="ribbon__group">
     <div class="ribbon__group-content">
       <div class="ribbon__vertical-group">
-        <button class="btn btn-sm-hor">
+        <button class="btn btn-sm-hor" (click)="selectAll()">
           <app-icon class="btn__icon btn-sm-hor__icon" [code]="1742"></app-icon>
           <p class="btn-sm-hor__label">Select all</p>
         </button>
-        <button class="btn btn-sm-hor">
+        <button class="btn btn-sm-hor" (click)="selectNone()">
           <app-icon class="btn__icon btn-sm-hor__icon" [code]="1749"></app-icon>
           <p class="btn-sm-hor__label">Select none</p>
         </button>
-        <button class="btn btn-sm-hor">
+        <button class="btn btn-sm-hor" (click)="selectInvert()">
           <app-icon class="btn__icon btn-sm-hor__icon" [code]="1756"></app-icon>
           <p class="btn-sm-hor__label">Invert selection</p>
         </button>

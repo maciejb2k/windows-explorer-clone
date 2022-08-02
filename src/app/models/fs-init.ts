@@ -114,25 +114,48 @@ export const initFS: any = {
               children: [
                 {
                   type: 'folder',
-                  name: 'Recycle Bin',
-                  icon: 437,
-                  isSystem: true,
+                  name: 'Praca Domowa',
+                  icon: 14,
+                  isSystem: false,
+                  children: [
+                    {
+                      type: 'file',
+                      name: 'gorące programistki w twojej okolicy',
+                      icon: 341,
+                      extension: 'iso',
+                    },
+                  ],
+                },
+                {
+                  type: 'folder',
+                  name: 'Angular',
+                  icon: 14,
+                  isSystem: false,
                   children: [],
                 },
                 {
                   type: 'file',
-                  name: 'Text document',
+                  name: 'hasla',
+                  icon: 882,
                   extension: 'txt',
                 },
                 {
                   type: 'file',
                   name: 'watykanczyk',
+                  icon: 60,
                   extension: 'exe',
                 },
                 {
                   type: 'file',
                   name: 'slodkie_kotki',
-                  extension: 'xlsx',
+                  icon: 563,
+                  extension: 'jpg',
+                },
+                {
+                  type: 'file',
+                  name: 'slodkie_pieski',
+                  icon: 693,
+                  extension: 'png',
                 },
               ],
             },
@@ -225,6 +248,7 @@ export const initFS: any = {
                   type: 'file',
                   name: 'example filmik',
                   extension: 'mp4',
+                  icon: 107,
                 },
                 {
                   type: 'folder',

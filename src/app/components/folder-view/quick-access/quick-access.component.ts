@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FSItemsView } from 'src/app/models/types';
 import { FileSystemService } from 'src/app/services/file-system.service';
 
@@ -7,14 +8,19 @@ import { FileSystemService } from 'src/app/services/file-system.service';
   templateUrl: './quick-access.component.html',
   styleUrls: ['./quick-access.component.scss'],
 })
-export class QuickAccessComponent implements OnInit {
+export class QuickAccessComponent implements OnDestroy {
   public items!: FSItemsView;
+  itemsSubscription: Subscription;
 
   constructor(private fileSystemService: FileSystemService) {
-    this.fileSystemService.getQuickAccessRefsObs().subscribe((value) => {
-      this.items = value;
-    });
+    this.itemsSubscription = this.fileSystemService
+      .getQuickAccessRefsObs()
+      .subscribe((value) => {
+        this.items = value;
+      });
   }
 
-  ngOnInit(): void {}
+  ngOnDestroy(): void {
+    this.itemsSubscription.unsubscribe();
+  }
 }

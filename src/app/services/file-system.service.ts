@@ -1,9 +1,16 @@
 import {
+  EXTENSIONS_ICONS,
+  INIT_ICON,
+  VIEWS_ICONS,
+} from './../common/constants';
+import {
   QUICK_ACCESS,
   VIEW_THIS_PC,
   VIEW_QUICK_ACCESS,
   INIT_LOCATION,
   NEW_FOLDER_DEFAULT_NAME,
+  NEW_FILE_DEFAULT_NAME,
+  SETTINGS,
 } from '../common/constants';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -28,6 +35,14 @@ import { ExplorerHistory } from '../models/history';
 
 import { USER_HOME, SYSTEM_FOLDERS } from 'src/app/common/constants';
 
+export type settings = {
+  pane: string;
+  layout: string;
+  itemCheckBoxes: boolean;
+  fileNameExtensions: boolean;
+  hiddenItems: boolean;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -39,6 +54,7 @@ export class FileSystemService {
   private displayLocation$: BehaviorSubject<string>;
   private currentFolder$!: BehaviorSubject<FSParentObjects | undefined>;
   private currentItemsView$: BehaviorSubject<FSItemsView>;
+  private currentIcon$: BehaviorSubject<number>;
 
   private history$: BehaviorSubject<ExplorerHistory>;
   private selectedItems$: BehaviorSubject<FSObjects[]>;
@@ -50,6 +66,8 @@ export class FileSystemService {
 
   public sysObjectsRefs: { [key: string]: FSParentObjects } = {};
   private osDevice!: FSDevice; // os disk always present;
+
+  private settings$: BehaviorSubject<settings>;
 
   constructor() {
     this.fs$ = new BehaviorSubject(initDevices);
@@ -63,6 +81,7 @@ export class FileSystemService {
     this.currentItemsView$ = new BehaviorSubject<FSItemsView>([]);
     this.itemsCount$ = new BehaviorSubject<number>(0);
     this.newItems$ = new BehaviorSubject<FSItems | undefined>(undefined);
+    this.currentIcon$ = new BehaviorSubject<number>(INIT_ICON);
 
     this.history$ = new BehaviorSubject<ExplorerHistory>(new ExplorerHistory());
 
@@ -70,6 +89,8 @@ export class FileSystemService {
     this.thisPcRefs$ = new BehaviorSubject<FSItemsView>([]);
 
     this.selectedItems$ = new BehaviorSubject<FSObjects[]>([]);
+
+    this.settings$ = new BehaviorSubject<settings>(SETTINGS);
 
     // Init file system structure on OS device
     this.initFileSystem();
@@ -217,6 +238,34 @@ export class FileSystemService {
     this.quickAccessRefs$.next(setupView);
   }
 
+  selectAll() {
+    const items = this.getCurrentItemsView();
+    const selected = items.reduce(
+      (arr: FSObjects[], item) => arr.concat(item.children),
+      []
+    );
+
+    this.selectedItems$.next(selected);
+  }
+
+  selectNone() {
+    this.selectedItems$.next([]);
+  }
+
+  selectInvert() {
+    const items = this.getCurrentItemsView();
+    const selectedItems = this.getSelectedItems();
+
+    const selected = items.reduce(
+      (arr: FSObjects[], item) =>
+        arr.concat(item.children.filter((i) => !selectedItems.includes(i))),
+      []
+    );
+
+    this.selectedItems$.next([]);
+    this.selectedItems$.next(selected);
+  }
+
   createFolder() {
     const currentFolder = this.getCurrentFolder();
 
@@ -243,6 +292,35 @@ export class FileSystemService {
     this.addToFileSystem(newFolder, currentFolder);
 
     return newFolder;
+  }
+
+  createFile() {
+    const currentFolder = this.getCurrentFolder();
+
+    if (!currentFolder) {
+      // Cannot create item outside filesystem
+      return false;
+    }
+
+    const regex = new RegExp(`${NEW_FILE_DEFAULT_NAME}.*`);
+
+    // Set new name
+    const itemsWithSameName: FSFile[] = currentFolder.folder.children.filter(
+      (item) => item instanceof FSFile && item.node.name.match(regex)
+    ) as FSFile[];
+
+    const name = itemsWithSameName.length
+      ? `${NEW_FILE_DEFAULT_NAME} (${itemsWithSameName.length})`
+      : NEW_FILE_DEFAULT_NAME;
+
+    const newFile = new FSFileBuilder(name, currentFolder)
+      .setIcon(882)
+      .setExtension('txt')
+      .build();
+
+    this.addToFileSystem(newFile, currentFolder);
+
+    return newFile;
   }
 
   deleteItems() {
@@ -299,7 +377,10 @@ export class FileSystemService {
   doesFolderExists(name: string, target: FSParentObjects) {
     // Check if there is folder with the same name in target folder
     for (const item of target.folder.children) {
-      if (this.compareItemNames(name, item.node.name)) {
+      if (
+        item instanceof FSFolder &&
+        this.compareItemNames(name, item.node.name)
+      ) {
         return true;
       }
     }
@@ -312,13 +393,25 @@ export class FileSystemService {
     for (const item of target.folder.children) {
       if (
         item instanceof FSFile &&
-        this.compareItemNames(name, `${item.node.name}.${item.file.extension}`)
+        this.compareItemNames(name, item.node.name)
       ) {
         return true;
       }
     }
 
     return false;
+  }
+
+  getFileExtenstions(name: string) {
+    return name.split('.').pop();
+  }
+
+  getIconForFile(ext: string) {
+    return ext in EXTENSIONS_ICONS ? EXTENSIONS_ICONS[ext] : 7;
+  }
+
+  validateFileName(name: string) {
+    return /^[\w\-. ()]+\.[a-z]+$/.test(name);
   }
 
   addToFileSystem(item: FSItems, target: FSParentObjects) {
@@ -335,9 +428,15 @@ export class FileSystemService {
   }
 
   sortFolder(target: FSParentObjects) {
-    target.folder.children.sort((a, b) =>
-      a.node.name.localeCompare(b.node.name)
-    );
+    const files = target.folder.children
+      .filter((item) => item instanceof FSFile)
+      .sort((a, b) => a.node.name.localeCompare(b.node.name));
+
+    const folders = target.folder.children
+      .filter((item) => item instanceof FSFolder)
+      .sort((a, b) => a.node.name.localeCompare(b.node.name));
+
+    target.folder.children = [...folders, ...files];
   }
 
   addItemToRename() {
@@ -347,7 +446,9 @@ export class FileSystemService {
 
     const item = selected[0];
 
-    if (item instanceof FSFolder && !item.folder.isSystem) {
+    if (item instanceof FSFolder || item instanceof FSFile) {
+      if (item instanceof FSFolder && item.folder.isSystem) return;
+
       this.newItems$.next(item);
     }
   }
@@ -355,17 +456,24 @@ export class FileSystemService {
   renameItem(item: FSObjects, newName: string) {
     const currentFolder = this.getCurrentFolder();
 
-    if (!currentFolder) {
-      // Cannot rename item outside filesystem
-      return false;
-    }
-
-    const index = this.getNodeIndex(item, currentFolder);
+    // Cannot rename item outside filesystem
+    if (!currentFolder) return false;
 
     // Cannot rename item which doesn't exist
-    if (index === -1) return;
+    if (this.getNodeIndex(item, currentFolder) === -1) return;
 
     // Rename item
+    if (item instanceof FSFile) {
+      const ext = this.getFileExtenstions(newName);
+
+      if (!ext) return; // Nigdy nie bedzie pliku bez rozszerzenia
+
+      const icon = this.getIconForFile(ext);
+
+      item.file.extension = ext;
+      item.node.icon = icon;
+    }
+
     item.node.name = newName;
 
     this.sortFolder(currentFolder);
@@ -387,11 +495,13 @@ export class FileSystemService {
 
     // Jeżeli node nie jest typu folder lub device to zwróć
     if (!(node instanceof FSDevice) && !(node instanceof FSFolder)) {
+      this.currentItemsView$.next(setupNodes);
       return setupNodes;
     }
 
     // If folder is empty
     if (node.folder.children.length === 0) {
+      this.currentItemsView$.next(setupNodes);
       return setupNodes;
     }
 
@@ -401,6 +511,8 @@ export class FileSystemService {
 
     // Przypisz dzieci do setupNodes.children
     setupNodes[0].children = node.folder.children;
+
+    this.currentItemsView$.next(setupNodes);
 
     return setupNodes;
   }
@@ -556,7 +668,6 @@ export class FileSystemService {
     const currentFolder = this.currentFolder$.value;
 
     if (currentFolder && currentFolder.node.parent) {
-      console.log(this.getPathFromNode(currentFolder.node.parent));
       this.setNewPath(this.getPathFromNode(currentFolder.node.parent));
       return;
     }
@@ -573,7 +684,7 @@ export class FileSystemService {
 
     if (prev) {
       // Case when element has been deleted
-      if (!this.doesNodeExist(prev)) {
+      if (!(this.isPathToView(prev) || Boolean(this.getNodeFromPath(prev)))) {
         return;
       }
 
@@ -598,7 +709,7 @@ export class FileSystemService {
 
     if (next) {
       // Case when element has been deleted
-      if (!this.doesNodeExist(next)) {
+      if (!(this.isPathToView(next) || Boolean(this.getNodeFromPath(next)))) {
         return;
       }
 
@@ -641,6 +752,19 @@ export class FileSystemService {
     this.buildInteractivePath();
     this.setHistory(newPath);
     this.setDisplayLocation();
+    this.setCurrentIcon(newPath);
+  }
+
+  setCurrentIcon(path: string) {
+    if (path in VIEWS_ICONS) {
+      this.currentIcon$.next(VIEWS_ICONS[path]);
+      return;
+    }
+
+    const node = this.getNodeFromPath(path);
+    if (node) {
+      this.currentIcon$.next(node.node.icon);
+    }
   }
 
   setPath(path: string) {
@@ -850,5 +974,21 @@ export class FileSystemService {
 
   clearNewItems() {
     this.newItems$.next(undefined);
+  }
+
+  getSettingsObs() {
+    return this.settings$.asObservable();
+  }
+
+  getSettings() {
+    return this.settings$.value;
+  }
+
+  getCurrentIconObs() {
+    return this.currentIcon$.asObservable();
+  }
+
+  getCurrentIcon() {
+    return this.currentIcon$.value;
   }
 }

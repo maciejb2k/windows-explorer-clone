@@ -1,3 +1,4 @@
+import { settings } from './../../../services/file-system.service';
 import { Subscription } from 'rxjs';
 import { FSItems, FSItemsView, FSObjects } from './../../../models/types';
 import { FSDevice } from 'src/app/models/fs-device';
@@ -31,6 +32,9 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
   newItems!: FSItems | undefined;
   newItemsSubscription: Subscription;
 
+  settings!: settings;
+  settingsSubscription: Subscription;
+
   isRenaming: boolean = false;
 
   groupsOpened: { [key: string]: boolean } = {};
@@ -45,6 +49,13 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
       .getSelectedItemsObs()
       .subscribe((value) => {
         this.selected = value;
+        this.selectItemsInView();
+      });
+
+    this.settingsSubscription = this.fileSystemService
+      .getSettingsObs()
+      .subscribe((value) => {
+        this.settings = value;
       });
 
     this.newItemsSubscription = this.fileSystemService
@@ -56,6 +67,8 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
         // New file hasn't been added yet to this.items
         if (this.newItems) {
           this.cd.detectChanges();
+
+          // Za to pójde do więzienia kiedyś XD
           setTimeout(() => this.enableRenaming(), 0);
         }
       });
@@ -78,6 +91,14 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
       // Set new path based on path string
       this.fileSystemService.setNewPath(nodePath);
     }
+  }
+
+  selectItemsInView() {
+    this.selectedNodes = {};
+
+    this.selected.forEach(
+      (item) => (this.selectedNodes[item.node.name] = item)
+    );
   }
 
   selectItem(e: MouseEvent, node: FSObjects) {
@@ -145,18 +166,21 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
     const input = e.target as HTMLSpanElement;
     const newName = input.textContent;
 
+    this.fileSystemService.clearNewItems();
+
     if (
       !newName ||
-      ((node.node.parent instanceof FSFolder ||
-        node.node.parent instanceof FSDevice) &&
-        this.fileSystemService.doesFolderExists(newName, node.node.parent))
+      !node.node.parent ||
+      (node instanceof FSFolder &&
+        this.fileSystemService.doesFolderExists(newName, node.node.parent)) ||
+      (node instanceof FSFile &&
+        (!this.fileSystemService.validateFileName(newName) ||
+          this.fileSystemService.doesFileExists(newName, node.node.parent)))
     ) {
       ref.textContent = node.node.name;
-      this.fileSystemService.clearNewItems();
       return;
     }
 
-    this.fileSystemService.clearNewItems();
     this.fileSystemService.renameItem(node, newName);
   }
 
@@ -191,11 +215,16 @@ export class ElementsListComponent implements OnChanges, OnDestroy {
     this.countItems();
   }
 
+  isFileInstance(node: FSObjects) {
+    return node instanceof FSFile;
+  }
+
   ngOnDestroy(): void {
     this.deselectAll();
     this.fileSystemService.setItemsCount(0);
 
     this.selectedSubscription.unsubscribe();
+    this.settingsSubscription.unsubscribe();
     this.newItemsSubscription.unsubscribe();
   }
 }

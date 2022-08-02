@@ -119,7 +119,6 @@ export class RibbonTabToolsComponent implements OnInit, OnDestroy {
             ...this.settings,
             newFolder: true,
             newItem: true,
-            easyAccess: true,
             properties: true,
             history: true,
           };
@@ -128,7 +127,6 @@ export class RibbonTabToolsComponent implements OnInit, OnDestroy {
             ...this.settings,
             newFolder: false,
             newItem: false,
-            easyAccess: false,
             properties: false,
             history: false,
           };
@@ -191,6 +189,10 @@ export class RibbonTabToolsComponent implements OnInit, OnDestroy {
       });
   }
 
+  newFile() {
+    this.fileSystemService.createFile();
+  }
+
   newFolder() {
     this.fileSystemService.createFolder();
   }
@@ -201,6 +203,18 @@ export class RibbonTabToolsComponent implements OnInit, OnDestroy {
 
   renameItem() {
     this.fileSystemService.addItemToRename();
+  }
+
+  selectAll() {
+    this.fileSystemService.selectAll();
+  }
+
+  selectNone() {
+    this.fileSystemService.selectNone();
+  }
+
+  selectInvert() {
+    this.fileSystemService.selectInvert();
   }
 
   ngOnDestroy(): void {

@@ -53,6 +53,7 @@ class FSFileBuilder implements IFSFileBuilder {
   }
 
   build() {
+    this.props.node.name = `${this.props.node.name}.${this.props.file.extension}`;
     return new FSFile(this.props);
   }
 }

@@ -1,6 +1,6 @@
 import { FSItemsView, FSObjects } from './../../models/types';
 import {} from '../../common/constants';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
   THIS_PC,
   LIBRARIES,
@@ -19,13 +19,14 @@ import {
 import { FileSystemService } from 'src/app/services/file-system.service';
 import { FSDevice } from 'src/app/models/fs-device';
 import { FSFolder } from 'src/app/models/fs-folder';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-tree-view',
   templateUrl: './tree-view.component.html',
   styleUrls: ['./tree-view.component.scss'],
 })
-export class TreeViewComponent {
+export class TreeViewComponent implements OnDestroy {
   readonly THIS_PC = THIS_PC;
   readonly LIBRARIES = LIBRARIES;
   readonly RECYCLE_BIN = RECYCLE_BIN;
@@ -50,18 +51,25 @@ export class TreeViewComponent {
   public quickAccessTree: FSObjects[] = [];
   public thisPcTree: FSObjects[] = [];
 
-  constructor(private fileSystemService: FileSystemService) {
-    this.fileSystemService.getQuickAccessRefsObs().subscribe((value) => {
-      value.forEach((group) => {
-        this.quickAccessTree.push(...group.children);
-      });
-    });
+  quickAccessTreeSubscription: Subscription;
+  thisPcTreeSubscription: Subscription;
 
-    this.fileSystemService.getThisPcRefsObs().subscribe((value) => {
-      value.forEach((group) => {
-        this.thisPcTree.push(...group.children);
+  constructor(private fileSystemService: FileSystemService) {
+    this.quickAccessTreeSubscription = this.fileSystemService
+      .getQuickAccessRefsObs()
+      .subscribe((value) => {
+        value.forEach((group) => {
+          this.quickAccessTree.push(...group.children);
+        });
       });
-    });
+
+    this.thisPcTreeSubscription = this.fileSystemService
+      .getThisPcRefsObs()
+      .subscribe((value) => {
+        value.forEach((group) => {
+          this.thisPcTree.push(...group.children);
+        });
+      });
   }
 
   toggleGroup(e: Event, name: string) {
@@ -86,5 +94,10 @@ export class TreeViewComponent {
 
   openView(path: string) {
     this.fileSystemService.setNewPath(path);
+  }
+
+  ngOnDestroy(): void {
+    this.quickAccessTreeSubscription.unsubscribe();
+    this.thisPcTreeSubscription.unsubscribe();
   }
 }
