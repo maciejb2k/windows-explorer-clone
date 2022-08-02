@@ -695,6 +695,7 @@ export class FileSystemService {
       this.buildInteractivePath();
       this.history$.next(history);
       this.setDisplayLocation();
+      this.setCurrentIcon(prev);
     }
   }
 
@@ -720,6 +721,7 @@ export class FileSystemService {
       this.buildInteractivePath();
       this.history$.next(history);
       this.setDisplayLocation();
+      this.setCurrentIcon(next);
     }
   }
 
